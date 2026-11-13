@@ -160,3 +160,39 @@ const ESCENARIOS = [
 ];
 const fmt = (x, d = 1) => x.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
 const hora = t => { const m = Math.floor(480 + t); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+
+// ---------------------------------------------------------------------------
+// Verificación y validación (solo se agregan funciones; el modelo no cambia)
+// ---------------------------------------------------------------------------
+// Indicadores de cada jornada, con los mismos generadores que correrEscenario
+function replicasEscenario(cap, replicas, metodo) {
+  const rng = new Generador(metodo, SEMILLA), rl = new Generador(metodo, SEMILLA_LLEGADAS);
+  const res = [];
+  for (let i = 0; i < replicas; i++) res.push(indicadores(new Jornada(cap, rng, rl).correr()));
+  return res;
+}
+// Tiempo de despacho esperado sin colas: suma de las medias de cada servicio
+function despachoTeoricoSinColas() {
+  const n = P.lineas.reduce((s, v, i) => s + v * P.probLineas[i], 0);
+  const tri = (a, m, b) => (a + m + b) / 3, uni = (a, b) => (a + b) / 2;
+  return tri(1, 2, 4) + (uni(2, 4) + n * uni(1, 2)) + (tri(0.5, 1, 2) + 0.35 * n) + tri(2, 3.5, 6) + uni(2, 4) + P.probFaltante * uni(...P.reabasto);
+}
+// Pruebas del generador: χ² (uniformidad), Kolmogorov-Smirnov (uniformidad) y corridas
+// arriba/abajo (independencia), con α = 0.05
+function pruebasGenerador(metodo = "mixto", tamanos = [1000, 10000, 100000]) {
+  const filas = [];
+  for (const n of tamanos) {
+    const g = new Generador(metodo, SEMILLA), u = Array.from({ length: n }, () => g.u());
+    const k = 10, fo = Array(k).fill(0); u.forEach(x => fo[Math.min(k - 1, Math.floor(x * k))]++);
+    const chi = fo.reduce((s, f) => s + (f - n / k) ** 2 / (n / k), 0);
+    filas.push({ prueba: "χ² (uniformidad)", n, estad: chi, critico: 16.919, pasa: chi < 16.919 });
+    const s = u.slice().sort((a, b) => a - b);
+    let d = 0; s.forEach((x, i) => { d = Math.max(d, (i + 1) / n - x, x - i / n); });
+    const dc = 1.36 / Math.sqrt(n);
+    filas.push({ prueba: "Kolmogorov-Smirnov (uniformidad)", n, estad: d, critico: dc, pasa: d < dc });
+    let corridas = 1; for (let i = 2; i < n; i++) if ((u[i] > u[i - 1]) !== (u[i - 1] > u[i - 2])) corridas++;
+    const media = (2 * n - 1) / 3, varz = (16 * n - 29) / 90, z = Math.abs((corridas - media) / Math.sqrt(varz));
+    filas.push({ prueba: "Corridas arriba/abajo (independencia)", n, estad: z, critico: 1.96, pasa: z < 1.96 });
+  }
+  return filas;
+}
