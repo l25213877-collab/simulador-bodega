@@ -499,7 +499,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 13.5px; border-to
   <div class="wrap">Equipo Los chispitas · Simulación 2026-3 · Mismo modelo que <span class="mono">simulacion_bodega.py</span>. Los parámetros son supuestos hasta contar con datos reales.</div>
 </footer>
 
-<script src="modelo.js"></script>
+<script src="modelo.js?v=2"></script>
 <script>
 const capPropia = () => [0, 1, 2, 3, 4].map(i => Math.max(1, Math.min(6, parseInt(document.getElementById("c" + i).value, 10) || 1)));
 const escenariosConPropio = () => [...ESCENARIOS, { nombre: `Propio (${capPropia().join("-")})`, cap: capPropia() }];

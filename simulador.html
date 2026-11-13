@@ -29,10 +29,10 @@ html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 13px/1.4 "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; overflow: hidden; }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-.app { display: grid; grid-template-rows: 34px 30px auto minmax(0, 1fr) 24px; height: 100vh; }
+.app { display: grid; grid-template-rows: 34px 30px auto minmax(0, 1fr) 24px; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
 
 /* Barra de título */
-.titlebar { display: flex; align-items: center; gap: 10px; padding: 0 0 0 10px; border-bottom: 1px solid var(--line-2); background: var(--bg); }
+.titlebar { display: flex; align-items: center; gap: 10px; padding: 0 0 0 10px; min-width: 0; overflow: hidden; border-bottom: 1px solid var(--line-2); background: var(--bg); }
 .logo { font: 700 15px/1 "Segoe UI", sans-serif; color: var(--brand); letter-spacing: -.5px; }
 .qa { display: flex; gap: 2px; }
 .qa span { width: 22px; height: 22px; display: grid; place-items: center; }
@@ -43,7 +43,8 @@ button { font: inherit; color: inherit; }
 .winbtns span { width: 40px; height: 34px; display: grid; place-items: center; color: var(--ink-2); }
 
 /* Pestañas de la cinta */
-.tabs { display: flex; align-items: stretch; background: var(--bg); border-bottom: 1px solid var(--line); padding-right: 8px; }
+.tabs { display: flex; align-items: stretch; background: var(--bg); border-bottom: 1px solid var(--line); padding-right: 8px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tabs > * { flex: none; }
 .tab { border: 0; background: none; padding: 0 16px; cursor: pointer; color: var(--ink-2); position: relative; }
 .tab:hover { background: var(--chrome); }
 .tab.file { background: var(--blue); color: #fff; padding: 0 22px; }
@@ -107,8 +108,8 @@ button { font: inherit; color: inherit; }
 .attrs .hd td { background: var(--panel); color: var(--ink); font-weight: 600; }
 .empty { padding: 10px; color: var(--muted); }
 
-.center { display: grid; grid-template-rows: auto minmax(0, 1fr) 26px; min-width: 0; min-height: 0; }
-.toolbox { border-bottom: 1px solid var(--line); background: var(--bg); }
+.center { display: grid; grid-template-rows: auto minmax(0, 1fr) 26px; grid-template-columns: minmax(0, 1fr); min-width: 0; min-height: 0; }
+.toolbox { border-bottom: 1px solid var(--line); background: var(--bg); min-width: 0; overflow: hidden; }
 .tb-tabs { display: flex; gap: 2px; padding: 4px 6px 0; overflow-x: auto; scrollbar-width: none; }
 .tb-tabs span { padding: 3px 9px; color: var(--ink-2); white-space: nowrap; }
 .tb-tabs span.on { color: var(--blue-2); box-shadow: inset 0 -2px 0 var(--blue); }
@@ -178,6 +179,9 @@ button { font: inherit; color: inherit; }
   .left { display: none; }
   .search, .title, .qa { display: none; }
   .kpirow { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .toolbox .tb-tabs, .toolbox .tb-icons { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -347,7 +351,7 @@ button { font: inherit; color: inherit; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="modelo.js"></script>
+<script src="modelo.js?v=2"></script>
 <script>
 const $ = id => document.getElementById(id);
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -368,7 +372,7 @@ const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 400);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.maxPolarAngle = Math.PI * 0.49;
-controls.minDistance = 8; controls.maxDistance = 90;
+controls.minDistance = 8; controls.maxDistance = 130;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xb8bec7, 0.85));
 const sol = new THREE.DirectionalLight(0xffffff, 0.75);
@@ -393,6 +397,7 @@ const M = {
   cartonTarde: mat(0xC89259, { r: 0.85, e: 0x8B1A1A }), cartonFTarde: mat(0xE8743A, { r: 0.85, e: 0x8B1A1A }),
   cinta: mat(0xE7CFA3), oscuro: mat(0x2B2F36), blanco: mat(0xF2F3F5), cabina: mat(0x2F6FE0, { m: 0.2 }),
   franja: mat(0xF2C230), edificio: mat(0xB9C4D2), puerta: mat(0x56606E), zona: mat(0xFCE7B2, { r: 1 }),
+  barra: mat(0x22C55E, { e: 0x0F5F2E }), barraFondo: mat(0xD5D9DF),
 };
 function caja(w, h, d, m, x, y, z, padre) {
   const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
@@ -454,12 +459,18 @@ function puntoBanda(k, d) {
   for (const s of g.segs) if (d <= s.desde + s.L + 1e-9) { const f = (d - s.desde) / s.L; return [s.x1 + (s.x2 - s.x1) * f, s.z1 + (s.z2 - s.z1) * f]; }
   const s = g.segs[g.segs.length - 1]; return [s.x2, s.z2];
 }
-function posFila(k, i) {
+const Y_SOBRE = Y_BANDA + ALTO_CAJA / 2;
+// Lugar del i-ésimo pedido en la fila k: sobre la banda (d = distancia recorrida) o,
+// si ya no cabe, en pilas de 3 en el piso junto al inicio de la banda (d = null)
+function lugarFila(k, i) {
   const g = geoBandas[k], paso = 0.78, caben = Math.floor((g.total - 0.5) / paso) + 1;
-  const extra = Math.max(0, i - caben + 1), j = Math.min(i, caben - 1);
-  const [x, z] = puntoBanda(k, g.total - 0.4 - j * paso);
-  return new THREE.Vector3(x, Y_BANDA + ALTO_CAJA / 2 + extra * (ALTO_CAJA + 0.02), z);
+  if (i < caben) { const d = g.total - 0.4 - i * paso; const [x, z] = puntoBanda(k, d); return { pos: new THREE.Vector3(x, Y_SOBRE, z), d }; }
+  const e = i - caben, col = Math.floor(e / 3), niv = e % 3, hilera = Math.floor(col / 6), c = col % 6;
+  const s0 = g.segs[0], ux = (s0.x2 - s0.x1) / s0.L, uz = (s0.z2 - s0.z1) / s0.L, lado = s0.z1 < 0 ? -1 : 1;
+  return { pos: new THREE.Vector3(s0.x1 + ux * (0.4 + c * 0.7), ALTO_CAJA / 2 + niv * (ALTO_CAJA + 0.02), s0.z1 + uz * (0.4 + c * 0.7) + lado * (1.35 + hilera * 0.7)), d: null };
 }
+const posFila = (k, i) => lugarFila(k, i).pos;
+function inicioBanda(k) { const [x, z] = PLANTA[k].banda[0]; return new THREE.Vector3(x, Y_SOBRE, z); }
 function posSlot(k, s) {
   const e = PLANTA[k], cap = vista.cap[k];
   return [e.st[0], e.st[1] + (s - (cap - 1) / 2) * 1.7];
@@ -512,12 +523,15 @@ function construirEstaciones() {
       const foco = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), M.focoOff); foco.position.set(x - e.dir * 0.52, Y_MESA + 0.66, z - 0.42); g.add(foco);
       const wx = x + e.dir * 0.95;
       cilindro(0.16, 0.8, M.pantalon, wx, 0.4, z, g);
-      cilindro(0.23, 0.62, M.chaleco, wx, 1.1, z, g);
-      const cabeza = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12), M.piel); cabeza.position.set(wx, 1.6, z); cabeza.castShadow = true; g.add(cabeza);
+      const trab = new THREE.Group(); trab.position.set(wx, 0.8, z); g.add(trab);
+      cilindro(0.23, 0.62, M.chaleco, 0, 0.3, 0, trab);
+      const cabeza = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12), M.piel); cabeza.position.set(0, 0.8, 0); cabeza.castShadow = true; trab.add(cabeza);
+      const fondo = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.09, 0.09), M.barraFondo); fondo.position.set(x, 2.02, z); fondo.visible = false; g.add(fondo);
+      const barra = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.11, 0.11), M.barra); barra.position.copy(fondo.position); barra.visible = false; g.add(barra);
       if (k === 0) caja(0.06, 0.34, 0.5, M.oscuro, x + e.dir * 0.35, Y_MESA + 0.17, z + 0.15, g);
       if (k === 2) caja(0.26, 0.12, 0.18, M.franja, x + e.dir * 0.3, Y_MESA + 0.06, z + 0.3, g);
       if (k === 3) { caja(0.5, 0.14, 0.4, M.carton, x + e.dir * 0.25, Y_MESA + 0.07, z + 0.28, g); const t = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.04, 8, 16), M.cinta); t.rotation.x = Math.PI / 2; t.position.set(x - e.dir * 0.3, Y_MESA + 0.04, z + 0.3); g.add(t); }
-      slots.push({ foco });
+      slots.push({ foco, trab, fondo, barra, x });
     }
     estGrupos.push({ g, slots });
   });
@@ -604,7 +618,7 @@ function finJornada() {
 function destino(p) {
   const d = p.donde, j = vista.j;
   if (d.en === "servicio") { const [x, z] = posSlot(d.k, p.slot); return new THREE.Vector3(x, Y_MESA + ALTO_CAJA / 2, z); }
-  if (d.en === "fila") return posFila(d.k, j.est[d.k].fila.indexOf(p));
+  if (d.en === "fila") return lugarFila(d.k, j.est[d.k].fila.indexOf(p)).pos;
   if (d.en === "reabasto") {
     const i = j.pedidos.filter(x => x.donde.en === "reabasto").indexOf(p);
     return new THREE.Vector3(REABASTO[0] - 1.8 + (i % 6) * 0.72, ALTO_CAJA / 2 + 0.02 + Math.floor(i / 6) * 0.52, REABASTO[1]);
@@ -612,23 +626,101 @@ function destino(p) {
   return CAMION.clone();
 }
 
+// Las cajas siguen una ruta (bandas, mesas, piso) en lugar de cruzar la planta en línea recta
+const V_CAJA = 7, ATRASO_MAX = 0.6;
+function claveDe(p) {
+  const d = p.donde, j = vista.j;
+  if (d.en === "fila") return `f${d.k}:${j.est[d.k].fila.indexOf(p)}`;
+  if (d.en === "servicio") return `s${d.k}:${p.slot}`;
+  if (d.en === "reabasto") return `r${j.pedidos.filter(x => x.donde.en === "reabasto").indexOf(p)}`;
+  return "x";
+}
+function tramoBanda(k, d0, d1, r) {
+  for (const s of geoBandas[k].segs) if (s.desde > d0 + 1e-6 && s.desde < d1 - 1e-6) r.push(new THREE.Vector3(s.x1, Y_SOBRE, s.z1));
+  const [x, z] = puntoBanda(k, d1); r.push(new THREE.Vector3(x, Y_SOBRE, z));
+}
+function planRuta(o, p) {
+  const d = p.donde, ant = o.userData.est, pos = o.position, r = [], meta = destino(p);
+  const alto = v => v.clone().setY(Math.max(v.y, Y_MESA + ALTO_CAJA / 2) + 0.35);
+  const subir = v => v.clone().setY(2.2);   // por encima del trabajador al salir de la mesa
+  let est = { en: d.en, k: d.k, d: null };
+  if (d.en === "fila" || d.en === "servicio") {
+    const k = d.k, lf = d.en === "fila" ? lugarFila(k, vista.j.est[k].fila.indexOf(p)) : null;
+    const enBanda = ant.k === k && (ant.en === "fila" || ant.en === "servicio") && ant.d !== null;
+    if (lf && lf.d === null) {                       // a la tarima junto a la banda
+      if (ant.k !== k || ant.en !== "fila") { if (ant.en === "servicio") r.push(subir(pos)); r.push(inicioBanda(k)); }
+      r.push(alto(lf.pos).setY(lf.pos.y + 0.4)); r.push(lf.pos);
+    } else {
+      let d0 = 0;
+      if (enBanda) d0 = ant.d;
+      else {
+        const ini = inicioBanda(k);
+        if (ant.en === "servicio") r.push(subir(pos));
+        else if (ant.en === "reabasto") { const lado = ini.z < 0 ? -1 : 1; r.push(new THREE.Vector3(ini.x, ALTO_CAJA / 2, ini.z + lado * 1.2)); }
+        else if (ant.en === "fila" && ant.d === null) r.push(pos.clone().setY(Y_SOBRE + 0.4));
+        r.push(ini);
+      }
+      const d1 = lf ? lf.d : geoBandas[k].total;
+      if (d1 > d0 + 1e-6) tramoBanda(k, d0, d1, r);
+      if (d.en === "servicio") { r.push(alto(meta)); r.push(meta); }
+      est.d = lf ? lf.d : geoBandas[k].total;
+    }
+  } else if (d.en === "reabasto") {
+    if (ant.en === "servicio") { r.push(alto(pos)); r.push(new THREE.Vector3(pos.x, ALTO_CAJA / 2, pos.z - 1.3)); }
+    r.push(meta);
+  } else {                                           // al camión
+    if (ant.en === "servicio") { r.push(subir(pos)); r.push(new THREE.Vector3(meta.x + 1.6, 2.2, meta.z)); }
+    r.push(meta);
+  }
+  o.userData.ruta = r; o.userData.est = est;
+}
+function moverCaja(o, dt) {
+  const r = o.userData.ruta;
+  if (!r.length) return true;
+  let resta = 0, prev = o.position;
+  for (const q of r) { resta += prev.distanceTo(q); prev = q; }
+  let paso = Math.max(V_CAJA, resta / ATRASO_MAX) * dt;
+  while (paso > 0 && r.length) {
+    const dd = o.position.distanceTo(r[0]);
+    if (dd <= paso) { o.position.copy(r[0]); r.shift(); paso -= dd; }
+    else { o.position.lerp(r[0], paso / dd); paso = 0; }
+  }
+  return !r.length;
+}
+
 function actualizar(inmediato = false, dt = 0) {
-  const j = vista.j, t = vista.reloj;
-  const k = inmediato || reduceMotion ? 1 : 1 - Math.exp(-dt * 9);
+  const j = vista.j, t = vista.reloj, salto = inmediato || reduceMotion;
   for (const p of j.pedidos) {
     if (p.fuera) continue;
-    let o = cajas.get(p.id) || crearCaja(p);
-    const meta = destino(p);
-    o.position.lerp(meta, k);
+    let o = cajas.get(p.id);
+    if (!o) { o = crearCaja(p); o.userData.est = { en: "nuevo" }; o.userData.ruta = []; o.userData.clave = ""; }
+    const clave = claveDe(p);
+    if (salto) {
+      const lf = p.donde.en === "fila" ? lugarFila(p.donde.k, j.est[p.donde.k].fila.indexOf(p)) : null;
+      o.position.copy(destino(p)); o.userData.ruta = []; o.userData.clave = clave;
+      o.userData.est = { en: p.donde.en, k: p.donde.k, d: lf ? lf.d : p.donde.en === "servicio" ? geoBandas[p.donde.k].total : null };
+    } else if (clave !== o.userData.clave) { planRuta(o, p); o.userData.clave = clave; }
+    const llego = moverCaja(o, salto ? 0 : dt);
     o.visible = vista.mus;
     const tarde = (p.despacho ?? t) > p.comprometida;
     o.material = p.faltante ? (tarde ? M.cartonFTarde : M.cartonF) : (tarde ? M.cartonTarde : M.carton);
-    if (p.donde.en === "salida" && o.position.distanceTo(meta) < 0.25) {
+    if (p.donde.en === "salida" && (llego || salto)) {
       scene.remove(o); cajas.delete(p.id); p.fuera = true;
       if (vista.sel && vista.sel.p === p) seleccionar(null);
     }
   }
-  estGrupos.forEach(({ slots }, k2) => slots.forEach((s, i) => { s.foco.material = j.est[k2].slots[i] ? M.focoOn : M.focoOff; }));
+  const fase = performance.now() / 1000;
+  estGrupos.forEach(({ slots }, k2) => slots.forEach((s, i) => {
+    const q = j.est[k2].slots[i];
+    s.foco.material = q ? M.focoOn : M.focoOff;
+    s.fondo.visible = s.barra.visible = !!q;
+    if (q) {
+      const f = Math.min(1, Math.max(0.02, (t - q.servIni) / Math.max(1e-6, q.servFin - q.servIni)));
+      s.barra.scale.x = f; s.barra.position.x = s.x - (1 - f) / 2;
+    }
+    s.trab.rotation.z = q && !reduceMotion ? Math.sin(fase * 6 + i + k2) * 0.08 : 0;
+    s.trab.position.y = 0.8 + (q && !reduceMotion ? Math.abs(Math.sin(fase * 6 + i + k2)) * 0.04 : 0);
+  }));
 
   const reloj = hms(Math.min(t, 479.999));
   $("relojBig").textContent = reloj; $("hudT").textContent = reloj;
@@ -664,7 +756,7 @@ function gizmo() {
 const CAMS = { "3d": [new THREE.Vector3(-8, 25, 29), new THREE.Vector3(-6.5, 0, 0)], sup: [new THREE.Vector3(-6.5, 42, 0.01), new THREE.Vector3(-6.5, 0, 0)] };
 let camMeta = null, camTocada = false;
 // Aleja la cámara en vistas angostas para que quepa toda la planta
-const ajuste = n => { const f = Math.max(1, 1.7 / camera.aspect); return [CAMS[n][1].clone().add(CAMS[n][0].clone().sub(CAMS[n][1]).multiplyScalar(f)), CAMS[n][1]]; };
+const ajuste = n => { const f = Math.max(1, (camera.aspect < 1.2 ? 1.9 : 1.7) / camera.aspect); return [CAMS[n][1].clone().add(CAMS[n][0].clone().sub(CAMS[n][1]).multiplyScalar(f)), CAMS[n][1]]; };
 function irCam(n) { camMeta = ajuste(n); if (reduceMotion) { camera.position.copy(camMeta[0]); controls.target.copy(camMeta[1]); camMeta = null; } }
 camera.position.copy(CAMS["3d"][0]); controls.target.copy(CAMS["3d"][1]);
 
@@ -875,7 +967,9 @@ $("fileMenu").querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => ({ e
 const COMANDOS = { iniciar: "bPlay", simular: "bPlay", pausar: "bStop", detener: "bStop", reiniciar: "bReset", paso: "bStep", evento: "bStep", final: "bFast", estadisticas: "bEstad", estadísticas: "bEstad", experimento: "bExp", exportar: "bCsv", csv: "bCsv", superior: "bVistaSup", "3d": "bVista3d", centrar: "bCentrar", atributos: "bAtributos", etiquetas: "bIconos", mus: "bMus" };
 $("cmd").addEventListener("keydown", e => {
   if (e.key !== "Enter") return;
-  const q = e.target.value.trim().toLowerCase(), k = Object.keys(COMANDOS).find(c => c.startsWith(q) || q.includes(c));
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  const k = Object.keys(COMANDOS).find(c => c.startsWith(q) || q.includes(c));
   if (k) { $(COMANDOS[k]).click(); e.target.value = ""; }
 });
 

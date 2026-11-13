@@ -72,7 +72,9 @@ class Jornada {
     e.ocup++; const s = e.slots.indexOf(null); e.slots[s] = p;
     p.slot = s; p.donde = { k, en: "servicio" }; p.inicio[k] = t;
     e.esperas.push(t - p.llega[k]);
-    this.programar(t + tiempoServicio(k, p, this.rng), "fin", p, k);
+    const ts = tiempoServicio(k, p, this.rng);
+    p.servIni = t; p.servFin = t + ts;
+    this.programar(t + ts, "fin", p, k);
   }
   solicitar(k, p, t) {
     const e = this.est[k];
@@ -154,6 +156,7 @@ const ESCENARIOS = [
   { nombre: "A: empacador → surtido", cap: [1, 4, 1, 2, 1] },
   { nombre: "B: empacador → verificación", cap: [1, 3, 2, 2, 1] },
   { nombre: "C: +1 surtidor", cap: [1, 4, 1, 3, 1] },
+  { nombre: "D: A + 2.º muelle", cap: [1, 4, 1, 2, 2] },
 ];
 const fmt = (x, d = 1) => x.toLocaleString("es-MX", { minimumFractionDigits: d, maximumFractionDigits: d });
 const hora = t => { const m = Math.floor(480 + t); return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
