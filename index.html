@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulación de la bodega</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Fira+Sans:wght@400;500;600;700&family=Chewy&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F7FC;
+  --card: #FFFFFF;
+  --ink: #0F1E3D;
+  --ink-2: #334155;
+  --muted: #5B6B82;
+  --line: #D6E0EE;
+  --line-strong: #B4C3D8;
+  --primary: #2563EB;
+  --primary-ink: #1D4ED8;
+  --primary-soft: #E3EDFD;
+  --accent: #C2410C;
+  --accent-soft: #FDEBDD;
+  --good: #15803D;
+  --good-soft: #E1F4E7;
+  --bad: #B91C1C;
+  --bad-soft: #FBE4E4;
+  --dot: #2563EB;
+  --dot-ring: #FFFFFF;
+  --shadow: 0 1px 2px rgba(15, 30, 61, .06), 0 2px 8px rgba(15, 30, 61, .04);
+  --mono: "Fira Code", ui-monospace, Menlo, monospace;
+  --sans: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --h1: #E8F0FD; --h2: #CFE0FB; --h3: #A9C7F7; --h4: #7DA8F1; --h5: #4E86E8; --h6: #2563EB; --h7: #1B48B8;
+  --hi-ink: #FFFFFF; --hi-from: 4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1220; --card: #111A2C; --ink: #E6ECF5; --ink-2: #C3CDDC; --muted: #8C9AB0;
+    --line: #22304A; --line-strong: #33445F; --primary: #5B8DEF; --primary-ink: #8FB1F5;
+    --primary-soft: #172A4D; --accent: #F28A4B; --accent-soft: #3A2215; --good: #4ADE80;
+    --good-soft: #12301F; --bad: #F87171; --bad-soft: #3A1515; --dot: #5B8DEF; --dot-ring: #111A2C;
+    --shadow: none;
+    --h1: #15233F; --h2: #1A3060; --h3: #1F3F80; --h4: #2A55A6; --h5: #3B6CCB; --h6: #5B8DEF; --h7: #9BBBF6;
+    --hi-ink: #0B1220; --hi-from: 5;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1220; --card: #111A2C; --ink: #E6ECF5; --ink-2: #C3CDDC; --muted: #8C9AB0;
+  --line: #22304A; --line-strong: #33445F; --primary: #5B8DEF; --primary-ink: #8FB1F5;
+  --primary-soft: #172A4D; --accent: #F28A4B; --accent-soft: #3A2215; --good: #4ADE80;
+  --good-soft: #12301F; --bad: #F87171; --bad-soft: #3A1515; --dot: #5B8DEF; --dot-ring: #111A2C;
+  --shadow: none;
+  --h1: #15233F; --h2: #1A3060; --h3: #1F3F80; --h4: #2A55A6; --h5: #3B6CCB; --h6: #5B8DEF; --h7: #9BBBF6;
+  --hi-ink: #0B1220; --hi-from: 5;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--sans); }
+h1, h2, h3, h4 { line-height: 1.2; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--primary-ink); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+/* Encabezado */
+.topbar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.topbar .wrap { display: flex; align-items: center; gap: 16px; height: 56px; }
+.brand { font: 600 14px var(--mono); color: var(--ink); white-space: nowrap; }
+.nav { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.nav a { text-decoration: none; color: var(--ink-2); font-size: 14px; padding: 8px 12px; border-radius: 8px; white-space: nowrap; transition: background .2s, color .2s; }
+.nav a:hover { background: var(--primary-soft); color: var(--primary-ink); }
+
+.hero { padding-top: 48px; padding-bottom: 32px; }
+.eyebrow { font: 500 13px var(--mono); color: var(--primary-ink); letter-spacing: .02em; }
+.hero h1 { font-size: clamp(30px, 4.6vw, 48px); font-weight: 700; margin: 10px 0 12px; letter-spacing: -.01em; max-width: 18ch; }
+.hero .lead { color: var(--ink-2); max-width: 64ch; font-size: 17px; }
+.team { margin-top: 14px; color: var(--muted); font-size: 14px; }
+
+.ribbon { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; align-items: center; }
+.step { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.step b { font-weight: 600; }
+.arrow { color: var(--muted); }
+.tag { font: 500 11px var(--mono); padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+.tag.ok { background: var(--good-soft); color: var(--good); }
+.tag.warn { background: var(--accent-soft); color: var(--accent); }
+.tag.info { background: var(--primary-soft); color: var(--primary-ink); }
+
+section.block { padding: 40px 0; border-top: 1px solid var(--line); }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 8px; }
+.sec-num { font: 600 13px var(--mono); color: var(--primary-ink); }
+.sec-head h2 { font-size: clamp(24px, 3vw, 32px); font-weight: 700; }
+.sec-intro { color: var(--ink-2); max-width: 72ch; margin-bottom: 24px; }
+h3.sub { font-size: 19px; font-weight: 600; margin: 32px 0 12px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+.grid { display: grid; gap: 14px; }
+.g3 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+
+/* Fase 2: elementos */
+.elem { padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+.elem-top { display: flex; align-items: center; gap: 10px; }
+.ico { width: 34px; height: 34px; border-radius: 9px; background: var(--primary-soft); color: var(--primary-ink); display: grid; place-items: center; flex: none; }
+.ico svg { width: 18px; height: 18px; }
+.elem h4 { font-size: 16px; font-weight: 600; }
+.elem .def { font-size: 13.5px; color: var(--muted); }
+.elem ul { margin: 2px 0 0; padding-left: 18px; font-size: 14.5px; color: var(--ink-2); }
+.elem li { margin: 3px 0; }
+.elem li b { color: var(--ink); font-weight: 600; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; font-size: 13px; color: var(--muted); background: color-mix(in srgb, var(--primary-soft) 45%, var(--card)); }
+tr:last-child td { border-bottom: 0; }
+.table-wrap { overflow-x: auto; border-radius: 14px; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Fase 3 */
+.chain { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; counter-reset: c; }
+.chain .card { padding: 14px; position: relative; }
+.chain .n { font: 600 12px var(--mono); color: var(--primary-ink); }
+.chain h4 { font-size: 15px; margin: 4px 0 6px; }
+.chain p { font-size: 13.5px; color: var(--ink-2); }
+.flow-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.flow-svg { padding: 0; overflow-x: auto; border: 0; background: #A5DCD8; }
+.flow-svg svg { width: 100%; min-width: 680px; height: auto; display: block; }
+.rule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px 28px; }
+.fbox { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.5; }
+.fstage { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 1.5; }
+.fpill { fill: var(--ink); }
+.fdia { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.ft { fill: var(--ink); font: 600 14px var(--sans); }
+.fs { fill: var(--muted); font: 400 12px var(--sans); }
+.fpt { fill: var(--bg); font: 600 14px var(--sans); }
+.fedge { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.flab { fill: var(--accent); font: 600 12px var(--mono); }
+#arrowhead path { fill: var(--muted); }
+.rule { padding: 18px; }
+.rule h4 { font-size: 16px; }
+.rule ol { margin: 0; padding-left: 20px; font-size: 14.5px; color: var(--ink-2); }
+.rule li { margin: 6px 0; }
+.note { font-size: 13.5px; color: var(--muted); border-left: 3px solid var(--line-strong); padding-left: 10px; }
+
+/* Simulación */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; padding: 14px 16px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label, .field .lbl { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+select, input[type=number] { font: 500 14px var(--sans); color: var(--ink); background: var(--card); border: 1px solid var(--line-strong); border-radius: 8px; padding: 0 10px; height: 40px; }
+input[type=number] { width: 58px; font-family: var(--mono); }
+input[type=range] { width: 150px; accent-color: var(--primary); height: 40px; }
+.custom { display: none; gap: 6px; }
+.custom.on { display: flex; }
+.custom .field label { font-size: 11.5px; }
+.btns { display: flex; gap: 8px; margin-left: auto; }
+.btn { font: 600 14px var(--sans); border-radius: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background .2s, border-color .2s, transform .1s; }
+.btn:hover { background: var(--primary-soft); border-color: var(--primary); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn.primary:hover { background: var(--primary-ink); }
+:root[data-theme="dark"] .btn.primary, :root:not([data-theme="light"]) .btn.primary { color: #fff; }
+.btn svg { width: 16px; height: 16px; }
+
+.sim-frame { padding: 0; overflow: hidden; }
+.sim-frame iframe { display: block; width: 100%; height: min(820px, 88vh); border: 0; }
+.sim-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; margin-top: 14px; }
+.plant-card { padding: 0; overflow: hidden; }
+.plant-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); gap: 12px; flex-wrap: wrap; }
+.clock { display: flex; align-items: baseline; gap: 10px; }
+.clock .time { font: 600 28px var(--mono); letter-spacing: -.02em; }
+.clock .min { font: 400 13px var(--mono); color: var(--muted); }
+.progress { flex: 1; min-width: 140px; max-width: 320px; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--primary); border-radius: 99px; }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--dot); display: inline-block; }
+.lg-dot.f { background: var(--accent); }
+.lg-dot.r { background: var(--dot); box-shadow: 0 0 0 2px var(--bad); }
+
+.plant-scroll { overflow-x: auto; }
+.plant { position: relative; height: 380px; min-width: 900px; }
+.col { position: absolute; top: 0; bottom: 0; border-right: 1px dashed var(--line); }
+.col:last-child { border-right: 0; }
+.col-h { position: absolute; top: 12px; left: 12px; right: 8px; }
+.col-h b { display: block; font-size: 13.5px; font-weight: 600; }
+.col-h span { font: 400 11.5px var(--mono); color: var(--muted); }
+.slot { position: absolute; width: 32px; height: 32px; border: 1.5px dashed var(--line-strong); border-radius: 8px; }
+.zone-lbl { position: absolute; font: 500 11px var(--mono); color: var(--muted); }
+.qcount { position: absolute; font: 600 12px var(--mono); color: var(--accent); }
+.reab { position: absolute; border: 1.5px dashed var(--accent); border-radius: 10px; background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
+.truck { position: absolute; color: var(--ink-2); }
+.out-count { position: absolute; font: 600 26px var(--mono); }
+.ped { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: 4px; border-radius: 50%; background: var(--dot); color: #fff; font: 600 9px/24px var(--mono); text-align: center; box-shadow: 0 0 0 2px var(--dot-ring); transition: transform .38s cubic-bezier(.2,.7,.3,1), opacity .4s; will-change: transform; }
+.ped.f { background: var(--accent); }
+.ped.late { box-shadow: 0 0 0 2px var(--dot-ring), 0 0 0 4px var(--bad); }
+.ped.q { font-size: 0; }
+.ped.gone { opacity: 0; }
+.done-banner { position: absolute; inset: auto 16px 16px 16px; background: var(--card); border: 1px solid var(--primary); border-radius: 12px; padding: 12px 16px; display: none; font-size: 14.5px; box-shadow: var(--shadow); }
+.done-banner.on { display: block; }
+
+.side { display: flex; flex-direction: column; gap: 14px; }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.kpi { background: var(--card); padding: 12px 14px; }
+.kpi .v { font: 600 22px var(--mono); }
+.kpi .l { font-size: 12.5px; color: var(--muted); }
+.stage-stats { padding: 12px 14px; }
+.stage-stats h4, .log h4 { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.srow { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 13px; margin-bottom: 8px; }
+.srow .u { font: 500 12px var(--mono); color: var(--muted); text-align: right; }
+.bar { grid-column: 1 / -1; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--primary); border-radius: 0 4px 4px 0; transition: width .3s; }
+.bar i.hot { background: var(--accent); }
+.log { padding: 12px 14px; }
+.log ol { list-style: none; margin: 0; padding: 0; font: 400 12px/1.5 var(--mono); color: var(--ink-2); max-height: 196px; overflow: hidden; }
+.log li { padding: 2px 0; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log li .t { color: var(--primary-ink); margin-right: 6px; }
+
+/* Resultados */
+.res-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 14px; }
+.cell-ok { color: var(--good); font-weight: 600; }
+.cell-no { color: var(--bad); font-weight: 600; }
+.chart-card { padding: 18px; margin-top: 14px; position: relative; }
+.chart-card h4 { font-size: 15px; font-weight: 600; }
+.chart-card .cap { font-size: 13px; color: var(--muted); margin: 2px 0 12px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.c-grid { stroke: var(--line); stroke-width: 1; }
+.c-axis { fill: var(--muted); font: 400 11.5px var(--mono); }
+.c-lab { fill: var(--ink); font: 500 13px var(--sans); }
+.c-val { fill: var(--ink-2); font: 500 12px var(--mono); }
+.c-bar { fill: var(--primary); }
+.c-bar.best { fill: var(--accent); }
+.c-err { stroke: var(--ink); stroke-width: 1.5; }
+.c-hit { fill: transparent; cursor: default; }
+.c-hit:hover + .c-bar, .c-hit:focus + .c-bar { opacity: .85; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font: 500 12.5px/1.45 var(--sans); padding: 8px 10px; border-radius: 8px; opacity: 0; transition: opacity .15s; max-width: 240px; z-index: 5; }
+.tip.on { opacity: 1; }
+.heat td.num { font-weight: 500; }
+.decision { padding: 20px; margin-top: 14px; border-left: 4px solid var(--accent); }
+.decision h4 { font-size: 17px; margin-bottom: 6px; }
+.decision p { color: var(--ink-2); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+footer { padding: 32px 0 48px; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--line); }
+
+@media (max-width: 960px) {
+  .sim-layout, .flow-layout, .two { grid-template-columns: 1fr; }
+  .rule { position: static; }
+  .side { display: grid; grid-template-columns: 1fr 1fr; }
+  .side .kpis { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .side { display: flex; }
+  .btns { margin-left: 0; width: 100%; }
+  .btns .btn { flex: 1 1 0; min-width: 0; padding: 0 8px; justify-content: center; }
+  .brand { display: none; }
+  .nav { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ped, .bar i, .btn, .nav a { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <span class="brand">Los chispitas · Simulación</span>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#sistema">Fase 2 · Sistema</a>
+      <a href="#conceptual">Fase 3 · Modelo conceptual</a>
+      <a href="#simulacion">Simulación visual</a>
+      <a href="#resultados">Resultados</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap hero">
+  <p class="eyebrow">Avance 2 · Proyecto integrador · TecNM / Instituto Tecnológico de Tijuana</p>
+  <h1>Simulación de pedidos en una bodega de distribución</h1>
+  <p class="lead">Modelo de eventos discretos de la preparación y salida de pedidos, desde que llega el pedido hasta que sale en un camión. Busca dónde se concentra la espera y qué cambio de recursos la reduce.</p>
+  <p class="team">Araoz Sierra Ricardo · Esquer Hermosillo Jorge · Ramírez Juárez Mario Eduardo · Rodríguez Cervantes Daniel Iván — Profa. María Concepción Ibarra Gamiz</p>
+
+  <div class="ribbon" aria-label="Avance de la metodología">
+    <span class="step"><b>Datos reales</b><span class="tag warn">supuestos</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Modelo</b><span class="tag ok">listo</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Simulación</b><span class="tag ok">lista</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Resultados</b><span class="tag ok">listos</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Comparación</b><span class="tag ok">4 escenarios</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Validación</b><span class="tag info">parcial</span></span><span class="arrow" aria-hidden="true">→</span>
+    <span class="step"><b>Toma de decisión</b><span class="tag info">provisional</span></span>
+  </div>
+</div>
+
+<!-- ============ FASE 2 ============ -->
+<section class="block" id="sistema">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">Fase 2 · Parte 2.1</span><h2>Descripción del sistema y subsistemas</h2></div>
+    <p class="sec-intro">Según la metodología de la simulación, el sistema se describe con sus entidades, atributos, procesos, recursos, localizaciones, eventos, estado, variables y reloj. Abajo está cada elemento aplicado a la bodega; en la simulación visual se ven funcionando.</p>
+
+    <div class="grid g3">
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span><h4>Entidades</h4></div>
+        <p class="def">Objetos que fluyen por el sistema y reciben servicio.</p>
+        <ul><li><b>Pedido</b>: entidad principal; recorre las cinco etapas.</li><li><b>Productos</b> (líneas del pedido): definen el trabajo de surtido y verificación.</li><li><b>Clientes</b>: originan los pedidos; quedan fuera del modelo.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><h4>Atributos</h4></div>
+        <p class="def">Características propias de cada entidad.</p>
+        <ul><li><b>Número</b> y <b>hora de llegada</b> del pedido.</li><li><b>Líneas</b>: de 1 a 10 productos distintos.</li><li><b>Faltante</b>: sí o no (requiere reabasto).</li><li><b>Salida comprometida</b>: llegada + 90 min.</li><li>Llegada, inicio y fin en cada etapa; <b>hora de despacho</b>.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h4>Procesos</h4></div>
+        <p class="def">Actividades que transforman o mueven a la entidad.</p>
+        <ul><li><b>1 Recepción</b>: registrar y comprobar existencias.</li><li><b>2 Surtido</b>: localizar y reunir productos.</li><li><b>3 Verificación</b>: revisar productos y cantidades.</li><li><b>4 Empaque</b>: proteger y etiquetar.</li><li><b>5 Carga y despacho</b>: cargar y registrar la salida.</li><li>Subproceso de <b>reabasto</b> cuando hay faltante.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 3.1a4 4 0 0 1 0 7.8M21 21v-2a4 4 0 0 0-3-3.9"/></svg></span><h4>Recursos</h4></div>
+        <p class="def">Medios con capacidad limitada que atienden a las entidades.</p>
+        <ul><li><b>Capturista</b> con escáner: 1</li><li><b>Surtidores</b> con montacargas: 3</li><li><b>Verificador</b>: 1</li><li><b>Empacadores</b> y estaciones de empaque: 3</li><li><b>Muelle</b> con cuadrilla de carga: 1</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><h4>Localizaciones</h4></div>
+        <p class="def">Lugares físicos donde ocurren procesos o esperas.</p>
+        <ul><li>Oficina de recepción de pedidos.</li><li>Pasillos y racks de almacenamiento.</li><li>Mesa de verificación.</li><li>Estaciones de empaque.</li><li>Andenes y muelles de carga.</li><li>Filas de espera frente a cada etapa y zona de reabasto.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></span><h4>Eventos</h4></div>
+        <p class="def">Sucesos instantáneos que cambian el estado del sistema.</p>
+        <ul><li><b>Llegada</b> de un pedido.</li><li><b>Inicio</b> y <b>fin de servicio</b> en cada etapa.</li><li><b>Llegada del reabasto</b> de un faltante.</li><li><b>Despacho</b> del pedido.</li><li><b>Fin de jornada</b> a las 16:00.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span><h4>Estado del sistema</h4></div>
+        <p class="def">Variables que describen el sistema en un instante; solo cambian con un evento.</p>
+        <ul><li>Pedidos en cada fila.</li><li>Recursos libres u ocupados por etapa.</li><li>Pedidos esperando reabasto.</li><li>Pedidos despachados y retrasados.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M7 16V9M12 16V4M17 16v-5"/></svg></span><h4>Variables</h4></div>
+        <p class="def">Datos que entran al modelo o resultan de él.</p>
+        <ul><li><b>Entrada</b>: tiempo entre llegadas, líneas por pedido, faltantes, tiempos de servicio y capacidades.</li><li><b>Estado</b>: longitud de filas y recursos ocupados.</li><li><b>Salida</b>: espera por etapa, tiempo de despacho, pedidos despachados, utilización y retrasos.</li></ul>
+      </article>
+      <article class="card elem">
+        <div class="elem-top"><span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h4>Reloj de simulación</h4></div>
+        <p class="def">Tiempo simulado que ordena los eventos.</p>
+        <ul><li>Cuenta en minutos de 0 a 480 (jornada de 8:00 a 16:00).</li><li>Avanza <b>de evento en evento</b>: salta al siguiente evento programado, no minuto a minuto.</li><li>Al llegar a 480 min se cierra la jornada y se calculan los indicadores.</li></ul>
+      </article>
+    </div>
+
+    <h3 class="sub">Datos que se recolectan</h3>
+    <p class="sec-intro" style="margin-bottom:14px">La bodega es ficticia y todavía no tenemos mediciones, así que estos valores son <b>supuestos de trabajo</b>. Se reemplazarán con los datos que registremos.</p>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Dato</th><th>Cómo entra al modelo</th><th>Valor de trabajo</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Número de llegadas</td><td>Tiempo entre llegadas exponencial</td><td class="mono">15 pedidos/h (media 4 min)</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Demanda</td><td>Líneas por pedido, distribución discreta</td><td class="mono">1–10 líneas, media 4.52</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Tiempos de servicio</td><td>Una distribución por etapa (ver Fase 3)</td><td class="mono">2.3 a 9.8 min por etapa</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Número de servidores</td><td>Capacidad de cada recurso</td><td class="mono">1 · 3 · 1 · 3 · 1</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Capacidad</td><td>Estaciones de empaque y muelles</td><td class="mono">3 estaciones, 1 muelle</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Inventario</td><td>Probabilidad de faltante y tiempo de reabasto</td><td class="mono">5 %, reabasto de 10 a 20 min</td><td><span class="tag warn">supuesto</span></td></tr>
+          <tr><td>Tiempos de espera</td><td>Resultado de la simulación</td><td class="mono">se miden en el modelo</td><td><span class="tag ok">salida</span></td></tr>
+          <tr><td>Tiempo de producción</td><td>Preparación del pedido = suma de etapas + esperas</td><td class="mono">tiempo de despacho</td><td><span class="tag ok">salida</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FASE 3 ============ -->
+<section class="block" id="conceptual">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">Fase 3</span><h2>Modelo conceptual</h2></div>
+    <p class="sec-intro">Recorrido del modelo, del diagrama de flujo a los resultados.</p>
+
+    <div class="chain">
+      <div class="card"><span class="n">01</span><h4>Diagrama de flujo</h4><p>Pedido por las cinco etapas, con filas FIFO y desvío por faltante (parte 3.1).</p></div>
+      <div class="card"><span class="n">02</span><h4>Variables de entrada</h4><p>Llegadas, líneas, faltantes y personal por etapa. <b>Variable de interés:</b> tiempo de despacho.</p></div>
+      <div class="card"><span class="n">03</span><h4>Proceso</h4><p>Recepción → surtido → verificación → empaque → carga y despacho, más reabasto.</p></div>
+      <div class="card"><span class="n">04</span><h4>Variables aleatorias</h4><p>Generadas con el congruencial mixto y la transformada inversa.</p></div>
+      <div class="card"><span class="n">05</span><h4>Modelo de simulación</h4><p>Eventos discretos, jornada de 480 min, 30 réplicas por escenario.</p></div>
+      <div class="card"><span class="n">06</span><h4>Resultados</h4><p>Espera por etapa, tiempo de despacho, despachados, filas, utilización y retrasos.</p></div>
+    </div>
+
+    <h3 class="sub">Parte 3.1 · Diagrama de flujo del sistema</h3>
+    <div class="flow-layout">
+      <div class="card flow-svg" id="flow" role="img" aria-label="Diagrama de flujo: llega el pedido, se le asignan atributos, pasa por recepción; si tiene faltante espera reabasto; después surtido, verificación, empaque, carga y despacho; si sale después de la hora comprometida se cuenta como retrasado."></div>
+      <aside class="card rule rule-grid">
+        <div>
+          <h4>Regla en cada etapa</h4>
+          <ol>
+            <li>El pedido llega a la etapa.</li>
+            <li><b>¿Hay un recurso libre?</b> Sí: lo ocupa y se genera su tiempo de servicio. No: se forma en la fila (primero en llegar, primero en atenderse).</li>
+            <li>Al terminar, el recurso se libera y toma al siguiente de la fila.</li>
+            <li>El pedido pasa a la siguiente etapa.</li>
+          </ol>
+          <p class="note" style="margin-top:10px">La espera de cada etapa es el tiempo entre que el pedido llega a ella y que empieza su servicio.</p>
+        </div>
+        <div>
+          <h4>Generador de números</h4>
+          <p class="mono" style="font-size:13px;margin:8px 0">X<sub>i</sub> = (a·X<sub>i−1</sub> + c) mod m<br>U<sub>i</sub> = X<sub>i</sub> / m</p>
+          <p style="font-size:14px;color:var(--ink-2)">Mixto: a = 1,664,525 · c = 1,013,904,223 · m = 2<sup>32</sup>. Semilla 25213877 para servicios y 24213119 para llegadas, para que todos los escenarios reciban los mismos pedidos.</p>
+        </div>
+      </aside>
+    </div>
+
+    <h3 class="sub">Variables aleatorias</h3>
+    <div class="card table-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Distribución</th><th>Generación (transformada inversa)</th><th class="num">Media</th></tr></thead>
+        <tbody>
+          <tr><td>Tiempo entre llegadas</td><td>Exponencial, media 4 min</td><td class="mono">−4 · ln(1 − U)</td><td class="num">4.00</td></tr>
+          <tr><td>Líneas por pedido</td><td>Discreta 1–10 (15 %, 15 %, 13 %, 12 %, 10 %, 9 %, 8 %, 7 %, 6 %, 5 %)</td><td class="mono">menor x con F(x) &gt; U</td><td class="num">4.52</td></tr>
+          <tr><td>Faltante</td><td>Bernoulli, p = 0.05</td><td class="mono">U &lt; 0.05</td><td class="num">0.05</td></tr>
+          <tr><td>Reabasto</td><td>Uniforme (10, 20) min</td><td class="mono">10 + 10·U</td><td class="num">15.00</td></tr>
+          <tr><td>Recepción</td><td>Triangular (1, 2, 4) min</td><td class="mono">a + √(U(b−a)(c−a)) si U &lt; F(c)</td><td class="num">2.33</td></tr>
+          <tr><td>Surtido</td><td>Uniforme (2, 4) + Σ Uniforme (1, 2) por línea</td><td class="mono">2 + 2U + Σ(1 + U)</td><td class="num">9.78</td></tr>
+          <tr><td>Verificación</td><td>Triangular (0.5, 1, 2) + 0.35 min por línea</td><td class="mono">tri + 0.35·líneas</td><td class="num">2.75</td></tr>
+          <tr><td>Empaque</td><td>Triangular (2, 3.5, 6) min</td><td class="mono">transformada triangular</td><td class="num">3.83</td></tr>
+          <tr><td>Carga y despacho</td><td>Uniforme (2, 4) min</td><td class="mono">2 + 2U</td><td class="num">3.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SIMULACIÓN ============ -->
+<section class="block" id="simulacion">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">Modelo de simulación</span><h2>Simulador de la planta en 3D</h2></div>
+    <p class="sec-intro">Cada caja es un pedido que avanza por las bandas transportadoras y las estaciones. Arrastra para girar la vista, usa la rueda para acercar y haz clic en una estación para ver sus atributos. Es el mismo modelo que <span class="mono">simulacion_bodega.py</span>; la jornada que ves es la réplica 1 del escenario elegido.</p>
+    <div class="card sim-frame">
+      <iframe src="simulador.html" title="Simulador 3D de la bodega" loading="lazy"></iframe>
+    </div>
+    <p style="margin-top:12px"><a class="btn" href="simulador.html" target="_blank" rel="noopener">Abrir el simulador en pantalla completa</a></p>
+  </div>
+</section>
+
+<!-- ============ RESULTADOS ============ -->
+<section class="block" id="resultados">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">Resultados · Comparación · Validación</span><h2>Escenario actual contra alternativas</h2></div>
+    <p class="sec-intro">Cada escenario se simula durante varias jornadas con las mismas semillas. Los valores son promedios con intervalo de confianza del 95 % (±). Criterio de mejora: menor tiempo de despacho y al menos los mismos pedidos despachados que el escenario actual.</p>
+
+    <div class="res-controls card controls">
+      <div class="field"><label for="nrep">Jornadas por escenario</label>
+        <select id="nrep"><option>10</option><option selected>30</option><option>50</option><option>100</option></select></div>
+      <div class="field"><label for="gen">Generador</label>
+        <select id="gen"><option value="mixto" selected>Mixto</option><option value="multiplicativo">Multiplicativo</option></select></div>
+      <div class="field"><span class="lbl">Escenario propio (recep., surt., verif., emp., muelles)</span>
+        <div style="display:flex;gap:6px">
+          <input id="c0" type="number" min="1" max="6" value="1" aria-label="Recepción">
+          <input id="c1" type="number" min="1" max="6" value="4" aria-label="Surtido">
+          <input id="c2" type="number" min="1" max="6" value="1" aria-label="Verificación">
+          <input id="c3" type="number" min="1" max="6" value="2" aria-label="Empaque">
+          <input id="c4" type="number" min="1" max="6" value="2" aria-label="Muelles">
+        </div></div>
+      <div class="btns"><button class="btn primary" id="runAll" type="button">Volver a simular</button></div>
+    </div>
+
+    <div class="card table-wrap" style="margin-top:14px">
+      <table id="resTable"></table>
+    </div>
+
+    <div class="two">
+      <div class="card chart-card">
+        <h4>Tiempo promedio de despacho</h4>
+        <p class="cap">Minutos desde la llegada hasta el despacho. La línea fina marca el intervalo del 95 %.</p>
+        <div class="chart" id="chart"></div>
+        <div class="tip" id="tip" role="status"></div>
+      </div>
+      <div class="card chart-card">
+        <h4>Espera promedio por etapa (min)</h4>
+        <p class="cap">Un tono más intenso significa más espera. Aquí se ve dónde está el cuello de botella.</p>
+        <div class="table-wrap"><table class="heat" id="heat"></table></div>
+      </div>
+    </div>
+
+    <div class="card decision" id="decision"></div>
+
+    <h3 class="sub">Validación</h3>
+    <div class="two">
+      <div class="card table-wrap">
+        <table id="valTable"></table>
+      </div>
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>Indicador (Fase 7)</th><th class="num">Real</th><th class="num">Simulado</th><th class="num">Diferencia</th></tr></thead>
+          <tbody id="fase7"></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">La validación de las variables aleatorias ya se puede hacer. La comparación contra la bodega real queda pendiente hasta tener mediciones.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">Equipo Los chispitas · Simulación 2026-3 · Mismo modelo que <span class="mono">simulacion_bodega.py</span>. Los parámetros son supuestos hasta contar con datos reales.</div>
+</footer>
+
+<script src="modelo.js"></script>
+<script>
+const capPropia = () => [0, 1, 2, 3, 4].map(i => Math.max(1, Math.min(6, parseInt(document.getElementById("c" + i).value, 10) || 1)));
+const escenariosConPropio = () => [...ESCENARIOS, { nombre: `Propio (${capPropia().join("-")})`, cap: capPropia() }];
+
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------------------
+// Diagrama de flujo (parte 3.1)
+// ---------------------------------------------------------------------------
+function dibujarFlujo() {
+  const BW = 184, BH = 78;
+  const VERDE = "#4CD07A", TINTA = "#151515";
+  const lineas = (x, y, ls, cls, dy) => ls.map((l, i) => `<text class="${cls}" x="${x}" y="${y + i * dy}" text-anchor="middle">${l}</text>`).join("");
+  const caja = (x, y, titulo, sub, rot = 0) => `
+    <g transform="rotate(${rot} ${x} ${y})">
+      <rect x="${x - BW / 2 - 6}" y="${y - BH / 2 - 6}" width="${BW + 12}" height="${BH + 12}" rx="10" fill="${VERDE}"/>
+      <rect x="${x - BW / 2}" y="${y - BH / 2}" width="${BW}" height="${BH}" rx="5" fill="#FFFDF6" stroke="${TINTA}" stroke-width="3"/>
+      ${lineas(x, y - (sub ? 6 : -7), [titulo], "pt", 0)}
+      ${sub ? lineas(x, y + 18, [sub], "ps", 0) : ""}
+    </g>`;
+  const BUMPS = [[-62, 8, 30], [-34, -22, 33], [6, -30, 36], [46, -14, 32], [66, 14, 26], [30, 28, 31], [-16, 30, 31], [-48, 26, 24]];
+  const nube = (x, y, l1, l2) => {
+    const c = (extra, attrs) => BUMPS.map(([dx, dy, r]) => `<circle cx="${x + dx}" cy="${y + dy}" r="${r + extra}" ${attrs}/>`).join("");
+    return c(8, `fill="${VERDE}"`) + c(0, `fill="none" stroke="${TINTA}" stroke-width="6"`) + c(0, `fill="#FFFFFF"`) +
+      `<ellipse cx="${x}" cy="${y}" rx="58" ry="26" fill="#FFFFFF"/>` + lineas(x, y - 3, [l1, l2], "pc", 21);
+  };
+  const flecha = (d, lab, lx, ly) => `<path class="pf" d="${d}" marker-end="url(#pfa)"/>` + (lab ? `<text class="pl" x="${lx}" y="${ly}" text-anchor="middle">${lab}</text>` : "");
+  const sello = (x, y, l1, l2, rot) => `
+    <g transform="rotate(${rot} ${x} ${y})">
+      <circle cx="${x}" cy="${y}" r="50" fill="#7BEA9E" stroke="#0E5A31" stroke-width="3.5"/>
+      <circle cx="${x}" cy="${y}" r="42" fill="none" stroke="#0E5A31" stroke-width="1.5" stroke-dasharray="3 4"/>
+      ${lineas(x, y - 3, [l1, l2], "pseal", 24)}
+    </g>`;
+  const nubeDeco = (x, y, s) => `<path d="M${x} ${y}c${-18 * s} 0 ${-20 * s} ${-24 * s} ${-2 * s} ${-26 * s}c${4 * s} ${-18 * s} ${30 * s} ${-20 * s} ${36 * s} ${-4 * s}c${10 * s} ${-12 * s} ${34 * s} ${-4 * s} ${28 * s} ${14 * s}c${14 * s} ${2 * s} ${14 * s} ${16 * s} 0 ${16 * s}z" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
+
+  let s = `<svg viewBox="0 0 1000 840" xmlns="http://www.w3.org/2000/svg" font-family="'Patrick Hand', 'Comic Sans MS', cursive">
+    <defs>
+      <marker id="pfa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${TINTA}"/></marker>
+      <marker id="pfm" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5B35D5"/></marker>
+      <style>
+        .pt { font: 400 23px 'Patrick Hand', cursive; fill: ${TINTA}; }
+        .ps { font: 400 16px 'Patrick Hand', cursive; fill: #3F3F3F; }
+        .pc { font: 400 20px 'Patrick Hand', cursive; fill: ${TINTA}; }
+        .pl { font: 400 24px 'Chewy', cursive; fill: ${TINTA}; }
+        .pseal { font: 400 21px 'Chewy', cursive; fill: #0E5A31; letter-spacing: .5px; }
+        .pf { fill: none; stroke: ${TINTA}; stroke-width: 2.8; stroke-dasharray: 9 7; stroke-linecap: round; }
+      </style>
+    </defs>
+    <rect width="1000" height="840" rx="18" fill="#A5DCD8"/>`;
+
+  // Decoración de fondo
+  s += nubeDeco(860, 815, 1.3) + nubeDeco(940, 300, .9) + nubeDeco(70, 818, .8);
+  s += `<g stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity=".85"><path d="M190 52l14-8M196 74h16M190 96l14 8"/><path d="M960 560l-6 22M975 585l-20-2"/></g>`;
+  s += `<g fill="#FFFFFF" opacity=".55"><circle cx="300" cy="230" r="4"/><circle cx="730" cy="215" r="3"/><circle cx="470" cy="770" r="4"/><circle cx="960" cy="420" r="3"/></g>`;
+
+  // Título
+  s += `<text x="560" y="96" text-anchor="middle" style="font: 400 60px 'Chewy', cursive; fill: ${TINTA}; letter-spacing: 1px">Diagrama de flujo</text>`;
+  s += `<rect x="345" y="118" width="430" height="44" rx="8" fill="#F6A33C" stroke="${TINTA}" stroke-width="2.5"/>
+        <text x="560" y="148" text-anchor="middle" style="font: 400 24px 'Patrick Hand', cursive; fill: ${TINTA}">Preparación y salida de pedidos</text>`;
+  s += `<g transform="translate(790 34)"><rect width="28" height="24" y="4" rx="3" fill="${TINTA}"/><path d="M4 10h20M14 4v6" stroke="#A5DCD8" stroke-width="2"/>
+        <text x="36" y="18" style="font: 700 17px 'Fira Sans', sans-serif; fill: ${TINTA}">Los chispitas</text>
+        <text x="36" y="33" style="font: 400 10px 'Fira Sans', sans-serif; fill: ${TINTA}; letter-spacing: .5px">SIMULACIÓN · TECNM TIJUANA</text></g>`;
+
+  // Flechas (debajo de las figuras)
+  s += flecha("M120 120 V 148");
+  s += flecha("M120 232 V 300");
+  s += flecha("M120 382 V 424");
+  s += flecha("M218 466 H 244");
+  s += flecha("M384 432 V 312 H 482", "Sí", 362, 380);
+  s += flecha("M412 470 H 482", "No", 448, 500);
+  s += flecha("M580 312 V 420");
+  s += flecha("M678 466 H 738");
+  s += flecha("M836 510 V 594");
+  s += flecha("M738 640 H 682");
+  s += flecha("M482 640 H 440");
+  s += flecha("M262 646 H 176", "No", 220, 630);
+  s += flecha("M340 694 V 742", "Sí", 364, 728);
+  s += flecha("M242 782 H 120 V 696");
+  // Flecha morada decorativa hacia verificación
+  s += `<path d="M952 360c-30-34-78-24-70 8c6 24 42 16 34-6c-8-20-50-14-62 22" fill="none" stroke="#5B35D5" stroke-width="7" stroke-linecap="round" marker-end="url(#pfm)"/>`;
+
+  // Figuras
+  s += sello(120, 72, "EMPIEZA", "AQUÍ", -9);
+  s += caja(120, 190, "Llega un pedido", "TEL ~ Exp(4 min)", -1);
+  s += caja(120, 340, "Asignar atributos", "líneas · faltante · hora límite", 1);
+  s += caja(120, 466, "1 · Recepción", "1 capturista · Tri(1, 2, 4)", -1);
+  s += nube(340, 470, "¿Tiene", "faltante?");
+  s += caja(580, 312, "Esperar reabasto", "U(10, 20) min", 1);
+  s += caja(580, 466, "2 · Surtido", "3 surtidores", 0);
+  s += caja(836, 466, "3 · Verificación", "1 verificador", -1);
+  s += caja(836, 640, "4 · Empaque", "3 empacadores", 1);
+  s += caja(580, 640, "5 · Carga y despacho", "1 muelle · U(2, 4)", -1);
+  s += nube(340, 640, "¿Salió", "tarde?");
+  s += caja(340, 782, "Contar retrasado", "salida > llegada + 90", 1);
+  s += sello(120, 646, "TERMINA", "AQUÍ", 8);
+
+  $("flow").innerHTML = s + "</svg>";
+}
+
+// ---------------------------------------------------------------------------
+// Resultados y comparación
+// ---------------------------------------------------------------------------
+function resultados() {
+  const n = +$("nrep").value, metodo = $("gen").value;
+  const escs = escenariosConPropio().map(e => ({ ...e, r: correrEscenario(e.cap, n, metodo) }));
+  const base = escs[0].r;
+  escs.forEach((e, i) => {
+    e.personal = e.cap.slice(0, 4).reduce((a, b) => a + b, 0);
+    e.cumple = i > 0 && e.r.tiempo[0] < base.tiempo[0] && e.r.despachados[0] >= base.despachados[0];
+    e.peor = [0, 1, 2, 3, 4].reduce((a, k) => e.r["espera" + k][0] > e.r["espera" + a][0] ? k : a, 0);
+  });
+  const candidatos = escs.filter(e => e.cumple && e.personal <= escs[0].personal);
+  const mejor = candidatos.sort((a, b) => a.r.tiempo[0] - b.r.tiempo[0])[0];
+  escs.forEach(e => e.mejor = e === mejor);
+
+  const pm = ([m, h], d = 1) => `${fmt(m, d)} <span style="color:var(--muted)">± ${fmt(h, d)}</span>`;
+  $("resTable").innerHTML = `<thead><tr><th>Escenario</th><th class="num">Personal</th><th class="num">Tiempo de despacho (min)</th><th class="num">Despachados</th><th class="num">Pendientes</th><th class="num">Retrasados</th><th>Mayor espera</th><th>¿Cumple?</th></tr></thead><tbody>` +
+    escs.map((e, i) => `<tr><td><b>${e.nombre}</b><br><span class="mono" style="font-size:12px;color:var(--muted)">${e.cap.join(" · ")}</span></td>
+      <td class="num">${e.personal}</td><td class="num">${pm(e.r.tiempo, 2)}</td><td class="num">${pm(e.r.despachados)}</td>
+      <td class="num">${pm(e.r.pendientes)}</td><td class="num">${pm(e.r.retrasados)}</td><td>${ETAPAS[e.peor]}</td>
+      <td>${i === 0 ? "—" : e.cumple ? `<span class="cell-ok">Sí</span>` : `<span class="cell-no">No</span>`}${e.mejor ? ` <span class="tag warn">recomendado</span>` : ""}</td></tr>`).join("") + "</tbody>";
+
+  dibujarBarras(escs);
+
+  const max = Math.max(...escs.flatMap(e => [0, 1, 2, 3, 4].map(k => e.r["espera" + k][0])));
+  const tonos = ["--h1", "--h2", "--h3", "--h4", "--h5", "--h6", "--h7"];
+  const desde = +getComputedStyle(document.documentElement).getPropertyValue("--hi-from") || 4;
+  $("heat").innerHTML = `<thead><tr><th>Escenario</th>${ETAPAS.map(e => `<th class="num">${e.split(" ")[0]}</th>`).join("")}</tr></thead><tbody>` +
+    escs.map(e => `<tr><td>${e.nombre.split(":")[0]}</td>${[0, 1, 2, 3, 4].map(k => {
+      const v = e.r["espera" + k][0], idx = Math.min(6, Math.floor((v / max) * 6.99));
+      return `<td class="num" style="background:var(${tonos[idx]});color:${idx >= desde ? "var(--hi-ink)" : "var(--ink)"}">${fmt(v, 2)}</td>`;
+    }).join("")}</tr>`).join("") + "</tbody>";
+
+  const b = escs[0];
+  $("decision").innerHTML = mejor
+    ? `<h4>Decisión provisional: ${mejor.nombre}</h4>
+       <p>En el escenario actual la mayor espera está en <b>${ETAPAS[b.peor]}</b> (${fmt(b.r["espera" + b.peor][0], 2)} min). Con <b>${mejor.nombre}</b> el tiempo de despacho baja de ${fmt(b.r.tiempo[0], 2)} a ${fmt(mejor.r.tiempo[0], 2)} min (${fmt((1 - mejor.r.tiempo[0] / b.r.tiempo[0]) * 100, 1)} % menos) y se despachan ${fmt(mejor.r.despachados[0])} pedidos contra ${fmt(b.r.despachados[0])}, con las mismas ${mejor.personal} personas${mejor.cap[4] > b.cap[4] ? ` y ${mejor.cap[4] - b.cap[4]} muelle(s) más` : ""}. Después del cambio, la mayor espera pasa a <b>${ETAPAS[mejor.peor]}</b>.</p>
+       <p class="note" style="margin-top:10px">Es provisional: los parámetros son supuestos y la decisión final depende de validar el modelo con datos reales.</p>`
+    : `<h4>Ningún escenario cumple el criterio con el mismo personal</h4><p>Prueba otra asignación en el escenario propio.</p>`;
+
+  const f7 = [["Tiempo promedio de espera (surtido)", b.r.espera1[0], 2, " min"], ["Pedidos atendidos por jornada", b.r.despachados[0], 1, ""], ["Utilización de surtido", b.r.util1[0] * 100, 1, " %"], ["Longitud promedio de fila (surtido)", b.r.fila1[0], 2, ""]];
+  $("fase7").innerHTML = f7.map(([n, v, d, u]) => `<tr><td>${n}</td><td class="num" style="color:var(--muted)">pendiente</td><td class="num">${fmt(v, d)}${u}</td><td class="num" style="color:var(--muted)">–</td></tr>`).join("");
+}
+
+function dibujarBarras(escs) {
+  const W = 420, fila = 46, top = 8, izq = 112, der = 48, H = top + escs.length * fila + 28;
+  const max = Math.ceil(Math.max(...escs.map(e => e.r.tiempo[0] + e.r.tiempo[1])) / 5) * 5;
+  const x = v => izq + (v / max) * (W - izq - der);
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  for (let v = 0; v <= max; v += 10) s += `<line class="c-grid" x1="${x(v)}" x2="${x(v)}" y1="${top}" y2="${H - 24}"/><text class="c-axis" x="${x(v)}" y="${H - 8}" text-anchor="middle">${v}</text>`;
+  escs.forEach((e, i) => {
+    const y = top + i * fila + 10, h = 24, [m, ic] = e.r.tiempo;
+    s += `<text class="c-lab" x="${izq - 10}" y="${y + 17}" text-anchor="end">${e.nombre.split(":")[0]}</text>`;
+    s += `<rect class="c-hit" x="0" y="${y - 8}" width="${W}" height="${fila}" tabindex="0" data-i="${i}" aria-label="${e.nombre}: ${fmt(m, 2)} minutos"/>`;
+    s += `<path class="c-bar${e.mejor ? " best" : ""}" d="M${x(0)} ${y}H${x(m) - 4}a4 4 0 0 1 4 4v${h - 8}a4 4 0 0 1-4 4H${x(0)}Z"/>`;
+    s += `<line class="c-err" x1="${x(m - ic)}" x2="${x(m + ic)}" y1="${y + h / 2}" y2="${y + h / 2}"/><line class="c-err" x1="${x(m - ic)}" x2="${x(m - ic)}" y1="${y + 7}" y2="${y + h - 7}"/><line class="c-err" x1="${x(m + ic)}" x2="${x(m + ic)}" y1="${y + 7}" y2="${y + h - 7}"/>`;
+    s += `<text class="c-val" x="${x(m + ic) + 8}" y="${y + 17}">${fmt(m, 1)}</text>`;
+  });
+  $("chart").innerHTML = s + "</svg>";
+
+  const tip = $("tip"), card = $("chart").parentElement;
+  $("chart").querySelectorAll(".c-hit").forEach(r => {
+    const mostrar = ev => {
+      const e = escs[+r.dataset.i];
+      tip.innerHTML = `<b>${e.nombre}</b><br>Tiempo de despacho: ${fmt(e.r.tiempo[0], 2)} ± ${fmt(e.r.tiempo[1], 2)} min<br>Despachados: ${fmt(e.r.despachados[0])}<br>Personal: ${e.personal}`;
+      const cr = card.getBoundingClientRect(), rr = r.getBoundingClientRect();
+      tip.style.left = `${Math.min(cr.width - 250, Math.max(8, (ev.clientX ?? rr.left + rr.width / 2) - cr.left + 12))}px`;
+      tip.style.top = `${rr.bottom - cr.top + 4}px`;
+      tip.classList.add("on");
+    };
+    r.addEventListener("mousemove", mostrar); r.addEventListener("focus", mostrar);
+    r.addEventListener("mouseleave", () => tip.classList.remove("on")); r.addEventListener("blur", () => tip.classList.remove("on"));
+  });
+}
+
+function validacion() {
+  const metodo = $("gen").value, n = 100000, r = new Generador(metodo, SEMILLA);
+  const a = [], b = [], c = [];
+  for (let i = 0; i < n; i++) a.push(r.exp(P.mediaLlegadas));
+  for (let i = 0; i < n; i++) b.push(r.discreta(P.lineas, P.probLineas));
+  for (let i = 0; i < n; i++) c.push(r.tri(1, 2, 4));
+  const teo = P.lineas.reduce((s, v, i) => s + v * P.probLineas[i], 0);
+  const filas = [["Tiempo entre llegadas", promedio(a), 4], ["Líneas por pedido", promedio(b), teo], ["Recepción Tri(1, 2, 4)", promedio(c), 7 / 3]];
+  $("valTable").innerHTML = `<thead><tr><th>Variable (100,000 valores)</th><th class="num">Generada</th><th class="num">Teórica</th><th class="num">Error</th></tr></thead><tbody>` +
+    filas.map(([nom, g, t]) => `<tr><td>${nom}</td><td class="num">${fmt(g, 4)}</td><td class="num">${fmt(t, 4)}</td><td class="num">${fmt(Math.abs(g - t) / t * 100, 2)} %</td></tr>`).join("") + "</tbody>";
+}
+
+// ---------------------------------------------------------------------------
+// Inicio
+// ---------------------------------------------------------------------------
+for (let i = 0; i < 5; i++) $("c" + i).addEventListener("change", resultados);
+$("runAll").addEventListener("click", () => { resultados(); validacion(); });
+$("gen").addEventListener("change", () => { resultados(); validacion(); });
+$("nrep").addEventListener("change", resultados);
+document.fonts.ready.then(dibujarFlujo);
+dibujarFlujo(); resultados(); validacion();
+</script>
+</body>
+</html>
