@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0e1a36">
+<title>¡Sale pedido! · el juego de la bodega</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1a36'/%3E%3Crect x='7' y='10' width='18' height='15' rx='2' fill='%23c98f52'/%3E%3Cpath d='M7 15h18M16 10v15' stroke='%23f1e2c4' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+@font-face { font-family: "Hombros"; src: url("fonts/BigShoulders-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "JBMono"; src: url("fonts/JetBrainsMono-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+:root {
+  --navy: #0e1a36; --navy2: #182a55; --navy3: #24396e; --naranja: #ff7a1a; --naranja2: #d95c00; --rojo: #e5412d; --verde: #1fa67a; --amar: #f2b632;
+  --fondo: #eef1f6; --tinta: #0e1a36; --gris: #6b7690; --linea: #dfe4ee; --papel: #fffaf0;
+  --mono: "JBMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --disp: "Hombros", "Arial Narrow", Impact, sans-serif; --papel: #f6ecd6; --amarillo: #ffd21f; --azul: #2f6fde;
+  --trazo: -2px -2px 0 #0e1a36, 2px -2px 0 #0e1a36, -2px 2px 0 #0e1a36, 2px 2px 0 #0e1a36, 0 -3px 0 #0e1a36, 0 3px 0 #0e1a36, -3px 0 0 #0e1a36, 3px 0 0 #0e1a36, 0 7px 0 #0e1a36, 2px 7px 0 #0e1a36, -2px 7px 0 #0e1a36;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; background: #070d1f; }
+body { font-family: var(--sans); color: var(--tinta); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+#app { position: fixed; inset: 0; max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background: radial-gradient(90% 45% at 85% 0%, #2a418a 0%, transparent 70%), radial-gradient(80% 40% at 0% 100%, #3a1f5c 0%, transparent 70%), var(--navy); }
+#app::before { content: ""; position: absolute; inset: -40px; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgba(255,255,255,.09) 1.2px, transparent 1.6px); background-size: 22px 22px; animation: deriva 14s linear infinite; }
+@keyframes deriva { to { transform: translate(22px, 22px); } }
+.pant { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; animation: entra-p .35s ease-out; }
+@keyframes entra-p { from { opacity: 0; transform: translateY(10px); } }
+
+/* botones: cartel pintado con borde grueso */
+.btn { position: relative; display: block; width: 100%; padding: 13px 14px 11px; border-radius: 14px; background: var(--naranja); color: #fff;
+  font: 700 23px/1 var(--disp); letter-spacing: .05em; text-transform: uppercase; border: 3px solid var(--tinta); box-shadow: 0 5px 0 var(--tinta); transition: transform .08s, box-shadow .08s; }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--tinta); }
+.btn.sec { background: var(--papel); color: var(--tinta); }
+.btn.verde { background: var(--verde); }
+@keyframes late { 50% { opacity: .35; } }
+@keyframes logo { from { transform: rotate(-12deg) scale(.3); opacity: 0; } }
+@keyframes regalo { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-12deg) scale(1.08); } 84% { transform: rotate(10deg) scale(1.08); } 92% { transform: rotate(-6deg); } }
+@keyframes brillo { 0%, 55% { left: -90px; } 100% { left: 110%; } }
+@keyframes sube-n { from { transform: translateY(24px); opacity: 0; } }
+
+/* ---------- Intro ---------- */
+#intro { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; color: #fff; background: #0a1330;
+  padding: calc(12px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); }
+#intro.fuera { animation: fuera .35s forwards; }
+@keyframes fuera { to { opacity: 0; transform: scale(1.04); } }
+#saltar { align-self: flex-end; font: 700 12px var(--mono); color: #9fb0d6; padding: 8px 4px 8px 14px; }
+#escena { flex: 0 1 auto; min-height: 0; margin-top: auto; display: flex; align-items: center; justify-content: center; }
+#escena svg { width: 100%; max-height: 100%; border-radius: 22px; box-shadow: 0 18px 40px rgba(0,0,0,.45); animation: escena .45s cubic-bezier(.2,1.2,.4,1); }
+@keyframes escena { from { transform: scale(.92) translateY(14px); opacity: 0; } }
+.itxt { min-height: 132px; padding: 22px 2px 6px; margin-bottom: auto; }
+.itxt small { display: block; font: 700 11px var(--mono); color: var(--naranja); letter-spacing: .05em; text-transform: uppercase; }
+.itxt p { font: 700 21px/1.25 var(--mono); margin-top: 8px; letter-spacing: -.01em; }
+.itxt p i { font-style: normal; color: var(--amar); }
+.ipie { display: flex; align-items: center; gap: 14px; padding-bottom: 5px; }
+.ipuntos { display: flex; gap: 6px; }
+.ipuntos i { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); transition: all .25s; }
+.ipuntos i.on { width: 22px; background: var(--naranja); }
+.ipie .btn { flex: 1; }
+/* piezas animadas de las escenas */
+.a-sol { animation: a-sol 2.6s ease-out both; } @keyframes a-sol { from { transform: translateY(46px); } }
+.a-camion { animation: a-camion 1.5s cubic-bezier(.2,.9,.3,1) .3s both; } @keyframes a-camion { from { transform: translateX(-240px); } 80% { transform: translateX(5px); } }
+.a-rebota { animation: a-rebota .9s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes a-rebota { 0%, 100% { transform: translateY(0) scale(1.04, .96); } 50% { transform: translateY(-9px) scale(.97, 1.03); } }
+.a-cae { animation: a-cae .7s cubic-bezier(.3,1.5,.5,1) both; } @keyframes a-cae { from { transform: translateY(-190px) rotate(-25deg); opacity: 0; } }
+.a-tiembla { animation: a-tiembla .14s linear infinite; } @keyframes a-tiembla { 50% { transform: translate(1.5px, -1px) rotate(1.5deg); } }
+.a-pop { animation: a-pop .5s cubic-bezier(.3,1.7,.5,1) both; transform-box: fill-box; transform-origin: center; } @keyframes a-pop { from { transform: scale(0); } }
+.a-viaje { animation: a-viaje 3.2s ease-in-out infinite; } @keyframes a-viaje { 0%, 8% { transform: translateX(0); } 92%, 100% { transform: translateX(236px); } }
+.a-brilla { animation: a-brilla 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center; } @keyframes a-brilla { 50% { transform: scale(.4) rotate(40deg); opacity: .3; } }
+.a-humo { animation: a-humo 1s linear infinite; } @keyframes a-humo { from { transform: translate(0, 0); opacity: .7; } to { transform: translate(-16px, -12px); opacity: 0; } }
+.a-gota { animation: a-gota 1s ease-in infinite; } @keyframes a-gota { from { transform: translateY(-4px); opacity: 1; } to { transform: translateY(12px); opacity: 0; } }
+
+/* ---------- Menú: el camión de la paquetería ---------- */
+#menu { background: linear-gradient(#49a9ea 0%, #9ed8ff 55%, #d8f0ff 100%); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px 12px 0; }
+.cielo { position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none; overflow: hidden; }
+.nube { position: absolute; left: 0; height: 26px; border-radius: 20px; background: #fff; opacity: .9; animation: nube linear infinite; }
+.nube::before { content: ""; position: absolute; left: 20%; top: -12px; width: 42%; height: 28px; border-radius: 20px; background: #fff; }
+.n1 { top: 22px; width: 90px; animation-duration: 38s; } .n2 { top: 96px; width: 60px; animation-duration: 55s; animation-delay: -20s; opacity: .7; } .n3 { top: 170px; width: 110px; animation-duration: 70s; animation-delay: -45s; opacity: .6; }
+@keyframes nube { from { transform: translateX(-140px); } to { transform: translateX(620px); } }
+.camionM { position: relative; flex: none; margin-top: 4px; background: linear-gradient(#ff9a3c, #f47c1c); border: 4px solid var(--tinta); border-radius: 30px 30px 14px 14px; padding: 10px 12px 18px;
+  box-shadow: inset 0 6px 0 rgba(255,255,255,.3), inset 0 -8px 0 rgba(0,0,0,.14); animation: entra-c .6s cubic-bezier(.2,1.1,.4,1); }
+@keyframes entra-c { from { transform: translateX(-110%); } }
+.rotulo { text-align: center; padding: 2px 0 6px; }
+.rotulo small { display: inline-block; font: 700 13px/1 var(--disp); letter-spacing: .14em; text-transform: uppercase; color: var(--tinta); background: #ffd89a; padding: 4px 10px 3px; border-radius: 8px; border: 2.5px solid var(--tinta); }
+.rotulo h1 { font: 700 clamp(46px, 15.5vw, 64px)/.95 var(--disp); text-transform: uppercase; letter-spacing: .01em; color: #fff; text-shadow: var(--trazo); transform: rotate(-2deg); margin-top: 8px; animation: logo .7s cubic-bezier(.3,1.6,.5,1) .3s both; }
+.rotulo h1 em { font-style: normal; color: var(--amarillo); }
+.ventana { position: relative; margin-top: 26px; background: linear-gradient(#1c2f5e, #0e1a36); border: 4px solid var(--tinta); border-radius: 16px; box-shadow: 0 4px 0 rgba(255,255,255,.3); }
+#heroe { padding-top: 16px; }
+#heroe svg { display: block; width: 100%; height: auto; border-radius: 0 0 12px 12px; }
+.tabs { position: absolute; left: 10px; right: 10px; top: -17px; display: flex; gap: 8px; z-index: 2; }
+.tab { flex: 1; font: 700 19px/1 var(--disp); letter-spacing: .06em; text-transform: uppercase; color: #fff; background: var(--azul); border: 3px solid var(--tinta); border-radius: 5px; padding: 8px 4px 6px; box-shadow: 0 4px 0 var(--tinta); transform: rotate(1.5deg); }
+.tab:nth-child(3) { transform: rotate(-1deg); }
+.tab.prin { flex: 1.5; background: var(--naranja); font-size: 22px; transform: rotate(-2deg); animation: llama 1.1s ease-in-out infinite; }
+@keyframes llama { 50% { transform: rotate(-2deg) scale(1.07); } }
+.tab:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--tinta); animation: none; }
+.banderines { display: block; width: 100%; height: 30px; margin: 4px 0 -4px; }
+.hoja { position: relative; margin-top: 12px; background: var(--papel); border: 3px solid var(--tinta); border-radius: 6px; padding: 14px 10px 8px; box-shadow: 0 5px 0 rgba(0,0,0,.3); transform: rotate(-.6deg); color: var(--tinta); }
+.hoja::before { content: ""; position: absolute; top: -13px; left: 50%; width: 76px; height: 21px; margin-left: -38px; border-radius: 6px; background: linear-gradient(#e7ecf5, #8e9ab3); border: 3px solid var(--tinta); }
+.hoja-cab { display: flex; align-items: center; gap: 8px; background: var(--tinta); color: var(--papel); padding: 6px 8px 4px 10px; font: 700 21px/1 var(--disp); letter-spacing: .07em; text-transform: uppercase; }
+.hoja-cab b { flex: 1; }
+.hoja-cab span { font-size: 13px; width: 40px; text-align: center; opacity: .75; }
+.fila { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 4px 6px; text-align: left; border-bottom: 1.5px dashed rgba(14,26,54,.22); font: 700 21px/1 var(--disp); letter-spacing: .03em; color: var(--tinta);
+  animation: sube-n .4s cubic-bezier(.2,1.2,.4,1) backwards; }
+.fila:nth-child(2) { animation-delay: .06s; } .fila:nth-child(3) { animation-delay: .12s; } .fila:nth-child(4) { animation-delay: .18s; } .fila:nth-child(5) { animation-delay: .24s; }
+.fila .chk { flex: none; width: 23px; height: 23px; border: 2.5px solid var(--tinta); border-radius: 4px; display: grid; place-items: center; font: 700 22px/1 var(--sans); color: var(--rojo); background: #fff; }
+.fila .nom { white-space: nowrap; font-size: clamp(17px, 5.4vw, 21px); }
+.fila .guia { flex: 1; min-width: 8px; height: 3px; border-bottom: 3px dotted rgba(14,26,54,.45); transform: translateY(4px); }
+.fila .nota { width: 40px; text-align: center; font-size: 26px; }
+.nota.n3 { color: var(--verde); } .nota.n2 { color: var(--naranja2); } .nota.n1 { color: #8a7f68; } .nota.n0 { color: #b8ad95; }
+.fila .p { width: 40px; text-align: right; font: 700 13px var(--mono); }
+.fila .ir { flex: none; font-size: 18px; color: #8a7f68; min-width: 26px; text-align: right; white-space: nowrap; }
+.fila .ir svg { width: 20px; height: 20px; vertical-align: -4px; }
+.fila.sig { background: linear-gradient(transparent 14%, #ffe14d 14% 86%, transparent 86%); }
+.fila.sig .ir { color: var(--rojo); animation: late .9s steps(1) infinite; }
+.fila.cerrado { color: #a59c88; }
+.fila.cerrado .chk { border-color: #a59c88; background: transparent; }
+.fila.cerrado .guia { opacity: .4; }
+.fila:active { background: rgba(14,26,54,.1); }
+.hoja-pie { font: italic 12px Georgia, "Times New Roman", serif; color: #7a705c; text-align: center; padding-top: 7px; }
+.pizarra { position: relative; display: flex; gap: 12px; align-items: center; width: 100%; margin-top: 16px; padding: 11px 14px; text-align: left; background: #27323b; border: 6px solid #b5522a; border-radius: 10px;
+  outline: 3px solid var(--tinta); box-shadow: 0 5px 0 rgba(0,0,0,.3); color: #f4f1e6; transform: rotate(.8deg); transition: transform .08s; }
+.pizarra:active { transform: rotate(.8deg) translateY(3px); }
+.pizarra svg { flex: none; width: 44px; height: 44px; animation: regalo 2.4s ease-in-out infinite; }
+.pizarra b { display: block; font: 700 23px/1 var(--disp); text-transform: uppercase; letter-spacing: .06em; color: var(--amarillo); }
+.pizarra span span { display: block; font-size: 12.5px; line-height: 1.3; margin-top: 3px; opacity: .9; }
+.pizarra::after { content: "!"; position: absolute; top: -17px; right: -8px; width: 34px; height: 34px; border-radius: 50%; background: var(--rojo); border: 3px solid var(--tinta); color: #fff; font: 700 24px/30px var(--disp); text-align: center; animation: a-rebota .9s ease-in-out infinite; }
+.calle { position: relative; flex: 1 0 auto; margin: 0 -12px; padding: 44px 16px 12px; background: linear-gradient(transparent 0 18px, #3d4760 18px 22px, #4b566b 22px); display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; font-size: 11.5px; color: #dfe6f3; }
+.rueda { position: absolute; top: -10px; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(#9aa6bf 0 28%, #1c2333 30%); border: 4px solid var(--tinta); }
+.rueda.r1 { left: 44px; } .rueda.r2 { right: 44px; }
+.calle a { color: var(--amarillo); font-weight: 700; text-decoration: none; }
+
+/* ---------- Juego: marcador de moneda, botones y reloj de arena ---------- */
+.barraJ { flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; padding: 30px 12px 10px; }
+.etq { position: relative; display: flex; align-items: center; height: 48px; background: var(--azul); border: 3px solid var(--tinta); border-radius: 12px; box-shadow: 0 4px 0 var(--tinta), inset 0 3px 0 rgba(255,255,255,.25); color: #fff; }
+.etq b { display: block; font: 700 30px/1 var(--disp); letter-spacing: .03em; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.monedas { justify-self: start; margin-left: 12px; padding: 0 12px 0 46px; min-width: 122px; }
+.moneda, .arena { position: absolute; top: 50%; width: 54px; height: 54px; margin-top: -27px; border-radius: 50%; border: 3px solid var(--tinta); display: grid; place-items: center; box-shadow: 0 3px 0 var(--tinta); }
+.moneda { left: -14px; background: radial-gradient(circle at 35% 30%, #fff3a8, #f2b632 55%, #c98a0c); }
+.moneda svg { width: 28px; height: 28px; }
+.monedas.pop b { animation: pop .35s; } .monedas.pop .moneda { animation: gira-m .5s ease-out; }
+@keyframes pop { 40% { transform: scale(1.4) rotate(-4deg); color: #fff3a8; } }
+@keyframes gira-m { 50% { transform: scaleX(.1) translateY(-8px); } }
+.estr { display: flex; gap: 2px; font-size: 12px; line-height: 1; margin-top: 1px; }
+.estr i { font-style: normal; color: rgba(0,0,0,.4); }
+.estr i.ok { color: var(--amarillo); text-shadow: 0 1px 0 var(--tinta); animation: estrella-h .6s cubic-bezier(.3,1.7,.5,1); }
+@keyframes estrella-h { from { transform: scale(4) rotate(-90deg); } }
+.racha { position: absolute; left: 30px; top: -27px; font: 700 14px/1 var(--disp); letter-spacing: .06em; background: var(--naranja); color: #fff; padding: 4px 8px 2px; border: 2.5px solid var(--tinta); border-radius: 8px; white-space: nowrap; animation: racha .4s cubic-bezier(.3,1.7,.5,1); }
+@keyframes racha { from { transform: scale(0) rotate(-20deg); } }
+.reloj { justify-self: end; margin-right: 12px; padding: 0 46px 0 12px; min-width: 122px; justify-content: flex-end; text-align: right; }
+.arena { right: -14px; background: radial-gradient(circle at 35% 30%, #fff, var(--papel) 60%, #d8c9a8); }
+.arena svg { width: 28px; height: 28px; animation: arena 4s ease-in-out infinite; }
+@keyframes arena { 0%, 80% { transform: rotate(0); } 100% { transform: rotate(180deg); } }
+.tb { height: 6px; width: 64px; border-radius: 3px; background: rgba(0,0,0,.4); overflow: hidden; margin: 2px 0 0 auto; }
+.tb i { display: block; height: 100%; background: var(--amarillo); transform-origin: 0 50%; }
+.reloj.poco { background: var(--rojo); animation: alarma .5s ease-in-out infinite; }
+.reloj.poco .tb i { background: #fff; }
+@keyframes alarma { 50% { transform: scale(1.07) rotate(-2deg); } }
+.botones { position: relative; display: flex; gap: 6px; align-items: center; padding-bottom: 2px; }
+.bt { width: 42px; height: 42px; border-radius: 50%; background: var(--papel); border: 3px solid var(--tinta); box-shadow: 0 3px 0 var(--tinta); color: var(--tinta); font: 700 17px/1 var(--disp); display: grid; place-items: center; transition: transform .08s, box-shadow .08s; }
+.bt:active { transform: translateY(3px); box-shadow: 0 0 0 var(--tinta); }
+.bt svg { width: 18px; height: 18px; fill: none; stroke: var(--tinta); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+#nomNivel { position: absolute; left: -30px; right: -30px; top: -19px; text-align: center; font: 700 12px/1 var(--disp); letter-spacing: .12em; color: #9fb0d6; white-space: nowrap; }
+
+#cuerpo { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#pedidos { position: relative; display: flex; gap: 7px; padding: 6px 10px 10px; height: 82px; align-items: stretch; flex: none; }
+#pedidos::before { content: ""; position: absolute; left: 4px; right: 4px; top: 3px; height: 6px; border-radius: 3px; background: linear-gradient(#5a6a94, #2c3a63); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.tk { position: relative; flex: 0 0 calc(25% - 5.25px); min-width: 0; background: var(--papel); border-radius: 4px 4px 10px 10px; padding: 12px 5px 10px; box-shadow: 0 4px 8px rgba(0,0,0,.35);
+  transform-origin: 50% 0; animation: cae .5s cubic-bezier(.3,1.5,.5,1); }
+.tk::before { content: ""; position: absolute; top: -4px; left: 50%; width: 16px; height: 12px; margin-left: -8px; border-radius: 3px; background: linear-gradient(#e7ecf5, #9aa6bf); box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.tk .tkn { position: absolute; left: 6px; top: 9px; font: 700 8px var(--mono); color: #a6957a; }
+.tk .chips { display: flex; gap: 3px; justify-content: center; height: 34px; align-items: center; margin-top: 4px; }
+.tk .chips svg { width: 26px; height: 26px; flex: 0 1 26px; min-width: 0; filter: drop-shadow(0 2px 0 rgba(0,0,0,.18)); }
+.tk i { position: absolute; left: 6px; right: 6px; bottom: 6px; height: 6px; border-radius: 3px; background: #e6dfcf; overflow: hidden; }
+.tk i b { display: block; height: 100%; width: 100%; border-radius: 3px; background: var(--verde); transform-origin: 0 50%; }
+.tk.medio i b { background: var(--amar); }
+.tk.urge { animation: urge .3s ease-in-out infinite; background: #ffe9e4; }
+.tk.urge i b { background: var(--rojo); }
+.tk em { position: absolute; inset: 0; display: grid; place-items: center; font: 700 30px var(--mono); font-style: normal; color: #fff; border-radius: inherit; opacity: 0; }
+.tk.sale { pointer-events: none; }
+.tk.sale em { opacity: 1; }
+.tk.sale.ok { animation: sale-ok .45s ease-in forwards; } .tk.sale.ok em { background: rgba(31,166,122,.92); }
+.tk.sale.mal { animation: sale-mal .45s ease-in forwards; } .tk.sale.mal em { background: rgba(229,65,45,.92); }
+@keyframes cae { from { transform: translateY(-70px) rotate(8deg); opacity: 0; } 70% { transform: rotate(-3deg); } }
+@keyframes urge { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@keyframes sale-ok { 30% { transform: scale(1.12); } to { transform: translateY(-90px) scale(.7); opacity: 0; } }
+@keyframes sale-mal { 30% { transform: rotate(8deg); } to { transform: translateY(70px) rotate(24deg); opacity: 0; } }
+.sinped { position: absolute; inset: 14px 10px 10px; display: grid; place-items: center; color: #7f8db3; font: 700 11px var(--mono); border: 1.5px dashed rgba(255,255,255,.18); border-radius: 10px; pointer-events: none; }
+#pedidos.falla { animation: falla .4s; }
+@keyframes falla { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+
+#zona { flex: none; position: relative; margin: auto 8px; }
+#lienzo { position: absolute; left: 0; top: 0; display: block; touch-action: none; border-radius: 18px; box-shadow: 0 0 0 3px #0a1226, 0 0 0 5px #34497f, 0 14px 30px rgba(0,0,0,.5); }
+#pista { flex: none; margin: 14px 12px 4px; min-height: 44px; display: flex; align-items: center; gap: 10px; padding: 7px 14px 7px 8px; border-radius: 22px 22px 22px 6px;
+  background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.12); color: #eef2fb; font-size: 13px; line-height: 1.25; font-weight: 600; }
+#pista svg { flex: none; width: 30px; height: 30px; }
+#pista span { flex: 1; }
+#pista.aviso { background: #ffe1b0; border-color: #ffc978; color: #4a2600; animation: aviso .3s cubic-bezier(.3,1.6,.5,1); }
+#pista.cambio span { animation: cambio .25s ease-out; }
+@keyframes aviso { from { transform: scale(.94); } }
+@keyframes cambio { from { opacity: 0; transform: translateY(5px); } }
+
+/* ---------- Tarjetas de papel ---------- */
+#capa { position: absolute; inset: 0; z-index: 10; background: rgba(6,11,28,.8); display: flex; align-items: center; justify-content: center; padding: 16px; overflow: hidden; animation: velo .25s; }
+@keyframes velo { from { opacity: 0; } }
+#tarjeta { position: relative; width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; overflow-x: hidden; background: var(--papel); color: var(--tinta); border: 4px solid var(--tinta); border-radius: 18px; padding: 20px 16px 16px;
+  box-shadow: 0 8px 0 rgba(0,0,0,.45); animation: sube .4s cubic-bezier(.2,1.3,.4,1); }
+@keyframes sube { from { transform: translateY(40px) scale(.94); opacity: 0; } }
+#tarjeta .eti { font: 700 14px/1 var(--disp); letter-spacing: .13em; text-transform: uppercase; color: var(--naranja2); }
+#tarjeta h2 { font: 700 36px/1 var(--disp); text-transform: uppercase; letter-spacing: .02em; margin: 5px 0 8px; }
+#tarjeta p { font-size: 14px; line-height: 1.45; color: #4a4335; }
+.acciones { display: grid; gap: 12px; margin-top: 16px; padding-bottom: 6px; }
+.centro { text-align: center; }
+
+/* orden de trabajo (antes de cada nivel): tarjeta impresa */
+#tarjeta.orden { background: #f08332; padding: 8px; }
+.orden .marco { border: 2px solid rgba(255,255,255,.6); border-radius: 10px; padding: 12px 10px 12px; }
+.orden .sup { display: flex; justify-content: space-between; align-items: baseline; color: #fff3dc; }
+.orden .sup i { font: italic 24px/1 Georgia, "Times New Roman", serif; }
+.orden .sup span { font: 700 14px/1 var(--disp); letter-spacing: .14em; text-transform: uppercase; }
+#tarjeta.orden h2 { color: #fff; text-shadow: var(--trazo); font-size: clamp(38px, 12.5vw, 50px); text-align: center; margin: 12px 0 10px; transform: rotate(-1.5deg); }
+#tarjeta.orden .desc { color: #fff3dc; text-align: center; font-size: 13.5px; line-height: 1.35; }
+.ins { display: flex; justify-content: center; gap: 6px; margin: 12px 0 2px; }
+.in { width: 56px; text-align: center; font: italic 11.5px/1.1 Georgia, "Times New Roman", serif; color: #fff3dc; animation: a-pop .5s cubic-bezier(.3,1.7,.5,1) backwards; }
+.in:nth-child(2) { animation-delay: .08s; } .in:nth-child(3) { animation-delay: .16s; } .in:nth-child(4) { animation-delay: .24s; } .in:nth-child(5) { animation-delay: .32s; } .in:nth-child(6) { animation-delay: .4s; }
+.in span { display: grid; place-items: center; width: 46px; height: 46px; margin: 0 auto 4px; border-radius: 50%; background: var(--tinta); border: 3px solid #fff3dc; box-shadow: 0 0 0 2.5px var(--tinta); }
+.in span svg { width: 28px; height: 28px; }
+.in.nuevo { color: var(--amarillo); font-weight: 700; }
+.in.nuevo span { border-color: var(--amarillo); animation: late-n 1s ease-in-out infinite; }
+@keyframes late-n { 50% { transform: scale(1.12) rotate(-6deg); } }
+.pasos { background: var(--papel); border: 3px solid var(--tinta); border-radius: 10px; padding: 3px 10px; margin-top: 12px; }
+.paso { display: grid; grid-template-columns: 26px 1fr; gap: 9px; align-items: center; padding: 7px 0; font-size: 13px; line-height: 1.3; color: #4a4335; border-bottom: 1.5px dashed rgba(14,26,54,.22); }
+.paso:last-child { border-bottom: 0; }
+.paso b { color: var(--tinta); }
+.paso .ic { width: 26px; height: 26px; border-radius: 50%; background: var(--tinta); color: #fff; font: 700 15px/27px var(--disp); text-align: center; }
+.paso.nuevo .ic { background: var(--rojo); }
+.paso.nuevo span:last-child::before { content: "NUEVO "; font: 700 13px var(--disp); color: var(--rojo); letter-spacing: .06em; }
+.cintaM { display: flex; justify-content: center; gap: 16px; margin: 12px -2px 0; background: var(--papel); border: 3px solid var(--tinta); border-radius: 6px; padding: 6px 6px 4px; font: 700 21px/1 var(--disp); letter-spacing: .04em; transform: rotate(-1deg); }
+.cintaM span { color: var(--naranja2); letter-spacing: 1px; font-size: 15px; vertical-align: 2px; margin-right: 3px; }
+.orden .acciones { margin-top: 14px; padding: 0 2px 6px; }
+
+/* pausa: tira de papel rasgado */
+#capa.pausa { padding: 0; align-items: stretch; }
+#capa.pausa #tarjeta { width: 68%; max-width: 310px; max-height: none; border: 0; border-radius: 0; box-shadow: none; padding: 0 30px; display: flex; flex-direction: column; justify-content: center; text-align: center; animation: baja .4s cubic-bezier(.2,1.1,.4,1); }
+@keyframes baja { from { transform: translateY(-100%); } }
+#capa.pausa h2 { font-size: 46px; margin-bottom: 4px; }
+#capa.pausa p { font: italic 14px/1.35 Georgia, "Times New Roman", serif; margin-bottom: 22px; }
+.op { display: block; width: 100%; padding: 12px 8px 9px; margin: 4px 0; border-radius: 26px; font: 700 27px/1 var(--disp); letter-spacing: .06em; text-transform: uppercase; color: var(--tinta); }
+.op.sel { background: var(--azul); color: #fff; box-shadow: 0 4px 0 var(--tinta); border: 3px solid var(--tinta); }
+.op:active { background: var(--tinta); color: #fff; }
+
+/* resultados y premio: rayos, pizarrón y nota */
+#capa.result { background: #2b7fd0; padding: 14px; }
+#capa.result::before { content: ""; position: absolute; left: 50%; top: 40%; width: 260vmax; height: 260vmax; margin: -130vmax 0 0 -130vmax; background: repeating-conic-gradient(#2f86d8 0 9deg, #4ba3ec 9deg 18deg); animation: gira 50s linear infinite; }
+#capa.result::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 40%, transparent 30%, rgba(8,20,50,.5)); pointer-events: none; }
+#capa.result.gris { background: #56627a; } #capa.result.gris::before { background: repeating-conic-gradient(#56627a 0 9deg, #67748e 9deg 18deg); }
+#capa.result.oro { background: #f08a1c; } #capa.result.oro::before { background: repeating-conic-gradient(#f08a1c 0 9deg, #f9ab3d 9deg 18deg); }
+@keyframes gira { to { transform: rotate(360deg); } }
+#capa.result #tarjeta { z-index: 1; background: none; border: 0; box-shadow: none; padding: 4px 2px; animation: none; }
+.titulo { font: 700 clamp(48px, 17vw, 70px)/.9 var(--disp) !important; text-transform: uppercase; text-align: center; color: var(--amarillo); text-shadow: var(--trazo); transform: rotate(-3deg); margin: 6px 0 44px !important; letter-spacing: .02em; animation: logo .6s cubic-bezier(.3,1.6,.5,1) both; }
+.pz { position: relative; background: #232c34; border: 6px solid var(--papel); border-radius: 28px; outline: 3.5px solid var(--tinta); box-shadow: 0 8px 0 rgba(0,0,0,.35); padding: 14px 16px 28px; color: var(--papel); margin: 0 5px; animation: sube .45s cubic-bezier(.2,1.3,.4,1) .15s backwards; }
+.pz .masc { position: absolute; left: -8px; top: -52px; width: 78px; height: 78px; animation: a-rebota .9s ease-in-out infinite; transform-origin: 50% 100%; }
+.pz .niv { text-align: right; font: italic 15px/1.1 Georgia, "Times New Roman", serif; color: var(--amarillo); margin-bottom: 8px; padding-left: 74px; min-height: 18px; }
+.rl { display: flex; align-items: baseline; gap: 6px; font: 700 23px/1.35 var(--disp); letter-spacing: .06em; text-transform: uppercase; animation: cambio .3s ease-out backwards; }
+.rl:nth-child(3) { animation-delay: .3s; } .rl:nth-child(4) { animation-delay: .4s; } .rl:nth-child(5) { animation-delay: .5s; } .rl:nth-child(6) { animation-delay: .6s; } .rl:nth-child(7) { animation-delay: .7s; } .rl:nth-child(8) { animation-delay: .8s; }
+.rl u { flex: 1; height: 3px; border-bottom: 3px dotted rgba(246,236,214,.5); text-decoration: none; transform: translateY(-5px); }
+.rl > b { color: var(--amarillo); font-variant-numeric: tabular-nums; }
+.rl .est { font-size: 21px; letter-spacing: 3px; color: rgba(255,255,255,.22); }
+.rl .est b { display: inline-block; color: var(--amarillo); font-weight: 400; animation: estrella .55s cubic-bezier(.3,1.7,.5,1) backwards; }
+.rl .est b:nth-child(1) { animation-delay: .9s; } .rl .est b:nth-child(2) { animation-delay: 1.1s; } .rl .est b:nth-child(3) { animation-delay: 1.3s; }
+@keyframes estrella { from { transform: scale(0) rotate(-180deg); } }
+.rl.nota { border-top: 2px solid rgba(246,236,214,.35); margin-top: 8px; padding-top: 8px; font-size: 32px; color: var(--amarillo); align-items: center; }
+.rl.nota > b { width: 58px; height: 58px; border: 3.5px solid var(--papel); border-radius: 50%; display: grid; place-items: center; font-size: 34px; color: #fff; transform: rotate(-8deg); animation: sello .5s cubic-bezier(.3,1.7,.5,1) 1.5s backwards; }
+@keyframes sello { from { transform: scale(3.5) rotate(25deg); opacity: 0; } }
+.cinta { position: relative; z-index: 1; width: max-content; max-width: 94%; margin: -18px auto 0; background: var(--papel); color: var(--tinta); border: 3px solid var(--tinta); border-radius: 4px; padding: 7px 22px 5px; font: 700 21px/1 var(--disp); letter-spacing: .08em; text-transform: uppercase; text-align: center; transform: rotate(-2deg); box-shadow: 0 4px 0 rgba(0,0,0,.35); animation: a-pop .5s cubic-bezier(.3,1.7,.5,1) 1.7s backwards; }
+.result .acciones { margin-top: 20px; padding: 0 5px 8px; }
+.papelC { background: var(--papel); border: 4px solid var(--tinta); border-radius: 18px; padding: 16px 14px 16px; box-shadow: 0 8px 0 rgba(0,0,0,.35); animation: sube .45s cubic-bezier(.2,1.3,.4,1); }
+.trofeo { display: block; width: 120px; height: 120px; margin: 0 auto 2px; animation: trofeo .8s cubic-bezier(.3,1.6,.5,1) backwards, flota 2.4s ease-in-out .8s infinite; }
+@keyframes trofeo { from { transform: scale(0) rotate(-35deg); } }
+@keyframes flota { 50% { transform: translateY(-6px) rotate(2deg); } }
+.vale { position: relative; margin-top: 14px; border: 3px dashed var(--naranja2); border-radius: 12px; padding: 14px 12px; text-align: center; background: #fffaf0; overflow: hidden; }
+.vale::after { content: ""; position: absolute; top: 0; bottom: 0; width: 70px; left: -90px; background: linear-gradient(100deg, transparent, rgba(255,255,255,.9), transparent); animation: brillo 2.6s ease-in-out infinite; }
+.vale b { display: block; font: 700 30px/1 var(--disp); text-transform: uppercase; letter-spacing: .04em; color: var(--tinta); }
+.vale span { display: block; font-size: 13px; color: #4a4335; margin-top: 5px; line-height: 1.35; }
+.vale span u { text-decoration: none; font-weight: 700; color: var(--tinta); }
+.vale small { display: block; font: 700 11px var(--mono); color: #7a705c; margin-top: 8px; }
+.confeti { position: absolute; z-index: 0; top: -14px; width: 9px; height: 14px; border-radius: 2px; pointer-events: none; animation: confeti linear infinite; }
+@keyframes confeti { to { transform: translateY(110vh) rotate(720deg); } }
+
+/* el resto de la interfaz, al mismo estilo */
+#app::after { content: ""; position: absolute; inset: 0; z-index: 40; pointer-events: none; opacity: .13;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .7 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#pedidos { padding-top: 10px; height: 88px; }
+#pedidos::before { top: 5px; height: 7px; background: linear-gradient(#e7ecf5, #8e9ab3); border: 2px solid var(--tinta); left: 2px; right: 2px; }
+.tk { border: 2.5px solid var(--tinta); background: var(--papel); box-shadow: 0 4px 0 rgba(0,0,0,.4); border-radius: 3px 3px 9px 9px; }
+.tk::before { border: 2px solid var(--tinta); top: -7px; }
+.tk .tkn { font: 700 11px/1 var(--disp); color: #8a7f68; letter-spacing: .05em; top: 8px; }
+.tk i { border: 1.5px solid var(--tinta); height: 8px; bottom: 5px; left: 5px; right: 5px; background: #fff; }
+.tk.urge { background: #ffd9d2; }
+.tk em { font-family: var(--disp); font-size: 40px; }
+.sinped { font: 700 15px var(--disp); letter-spacing: .12em; text-transform: uppercase; inset: 18px 10px 8px; }
+#pista { background: var(--papel); border: 3px solid var(--tinta); box-shadow: 0 4px 0 var(--tinta); color: var(--tinta); border-radius: 22px 22px 22px 5px; }
+#pista.aviso { background: #ffe14d; border-color: var(--tinta); color: var(--tinta); }
+#lienzo { box-shadow: 0 0 0 4px var(--tinta), 0 0 0 8px #f47c1c, 0 0 0 11px var(--tinta), 0 16px 26px rgba(0,0,0,.5); border-radius: 14px; }
+#zona { margin-left: 13px; margin-right: 13px; }
+#saltar { font: 700 15px/1 var(--disp); letter-spacing: .1em; text-transform: uppercase; }
+.itxt small { font: 700 15px/1 var(--disp); letter-spacing: .14em; }
+.itxt p { font: 700 30px/1.08 var(--disp); text-transform: uppercase; letter-spacing: .02em; }
+#escena svg { border: 4px solid var(--tinta); border-radius: 18px; box-shadow: 0 8px 0 rgba(0,0,0,.4); }
+@media (max-height: 640px) {
+  #pista { min-height: 34px; font-size: 12px; margin: 8px 10px 2px; padding: 3px 12px 3px 6px; } #pista svg { width: 24px; height: 24px; }
+  #pedidos { height: 74px; } .tk .chips { height: 26px; } .tk .chips svg { width: 22px; height: 22px; }
+  .barraJ { padding-top: 28px; padding-bottom: 8px; } .etq { height: 42px; } .etq b { font-size: 26px; } .moneda, .arena { width: 46px; height: 46px; margin-top: -23px; } .bt { width: 38px; height: 38px; }
+  .itxt p { font-size: 24px; } .itxt { min-height: 104px; }
+  .rl { font-size: 20px; } .titulo { margin-bottom: 38px !important; }
+}
+@media (prefers-reduced-motion: reduce) { .confeti, #app::before, .nube { display: none; } #capa.result::before { animation: none; } }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="menu" class="pant" hidden>
+    <div class="cielo"><i class="nube n1"></i><i class="nube n2"></i><i class="nube n3"></i></div>
+    <div class="camionM">
+      <div class="rotulo"><small>Paquetería Los Chispitas</small><h1>¡Sale <em>pedido</em>!</h1></div>
+      <div class="ventana">
+        <div class="tabs"><button class="tab prin" id="bJugar">Jugar</button><button class="tab" id="bIntro">Intro</button><button class="tab" id="bSonM">Sonido</button></div>
+        <div id="heroe"></div>
+      </div>
+      <svg class="banderines" viewBox="0 0 340 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 3Q170 25 340 3" fill="none" stroke="#f6ecd6" stroke-width="2.5"/>
+        <path d="M22 5l11 17 11-19z" fill="#2f6fde" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><path d="M78 9l11 17 11-17z" fill="#1fa67a" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M134 12l11 17 11-17z" fill="#e5412d" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><path d="M190 12l11 17 11-17z" fill="#ffd21f" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M246 9l11 17 11-17z" fill="#2f6fde" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><path d="M302 5l11 17 7-19z" fill="#1fa67a" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/></svg>
+      <div class="hoja">
+        <div class="hoja-cab"><b>Hoja de ruta</b><span>Nota</span><span>Pts</span></div>
+        <div id="niveles"></div>
+        <div class="hoja-pie">Supera cada turno para abrir el siguiente.</div>
+      </div>
+      <button class="pizarra" id="bPremio">
+        <svg viewBox="0 0 40 40"><rect x="5" y="16" width="30" height="20" rx="3" fill="#ff7a1a" stroke="#f4f1e6" stroke-width="2"/><rect x="3" y="10" width="34" height="8" rx="2.500" fill="#ffa24d" stroke="#f4f1e6" stroke-width="2"/><rect x="17.500" y="10" width="5" height="26" fill="#f4f1e6"/><path d="M20 10c-3-7-11-6-9-1 1 2 5 2 9 1zm0 0c3-7 11-6 9-1-1 2-5 2-9 1z" fill="none" stroke="#f4f1e6" stroke-width="2.400"/></svg>
+        <span><b id="premioT">Gana un premio</b><span id="premioS"></span></span>
+      </button>
+    </div>
+    <div class="calle"><i class="rueda r1"></i><i class="rueda r2"></i><span>Los chispitas · INNOVATEC 2026</span><a href="../">Simulador 3D →</a></div>
+  </section>
+
+  <section id="juego" class="pant" hidden>
+    <div id="cuerpo">
+      <div id="pedidos"><div class="sinped" id="sinped">Esperando pedidos…</div></div>
+      <div id="zona"><canvas id="lienzo"></canvas></div>
+      <div id="pista"><span id="pistaIco"></span><span id="pistaTxt"></span></div>
+    </div>
+    <div class="barraJ">
+      <div class="etq monedas" id="ptsC">
+        <span class="moneda"><svg viewBox="0 0 28 28"><rect x="5" y="7" width="18" height="16" rx="2" fill="#a8743d" stroke="#0e1a36" stroke-width="2"/><rect x="5" y="7" width="18" height="12" rx="2" fill="#d39a5b" stroke="#0e1a36" stroke-width="2"/><rect x="12" y="7" width="4" height="12" fill="#f6e9cf"/></svg></span>
+        <div><b id="pts">0</b><div class="estr" id="estr"><i>★</i><i>★</i><i>★</i></div></div>
+        <span class="racha" id="racha" hidden></span>
+      </div>
+      <div class="botones">
+        <small id="nomNivel"></small>
+        <button class="bt" id="bSon" aria-label="Sonido"></button>
+        <button class="bt" id="bPausa" aria-label="Pausa">II</button>
+      </div>
+      <div class="etq reloj" id="tiempoC">
+        <div><b id="tiempo">1:15</b><div class="tb"><i id="tBarra"></i></div></div>
+        <span class="arena"><svg viewBox="0 0 24 24"><path d="M7 3c0 5 4 6 5 9-1 3-5 4-5 9h10c0-5-4-6-5-9 1-3 5-4 5-9z" fill="#fff" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><path d="M9.500 19.500c0-2 1.500-3 2.500-4.500 1 1.500 2.500 2.500 2.500 4.500z" fill="#f2b632"/><path d="M5.500 3h13M5.500 21h13" stroke="#0e1a36" stroke-width="2.600" stroke-linecap="round"/></svg></span>
+      </div>
+    </div>
+  </section>
+
+  <div id="capa" hidden><div id="tarjeta"></div></div>
+
+  <div id="intro" hidden>
+    <button id="saltar">Saltar ›</button>
+    <div id="escena"></div>
+    <div class="itxt"><small id="iSup"></small><p id="iTxt"></p></div>
+    <div class="ipie"><div class="ipuntos" id="iPuntos"></div><button class="btn" id="iSig">Siguiente</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = function (id) { return document.getElementById(id); };
+  const CLAVE = "sale-pedido.v1";
+  const T_ESCANER = 2.6, T_SELLO = 1.3, VEL = 4.6, MAX_PROD = 3, T_VUELO = 0.2;
+  const C = { navy: "#0e1a36", navy2: "#182a55", naranja: "#ff7a1a", rojo: "#e5412d", verde: "#1fa67a", amar: "#f2b632",
+              carton: "#d39a5b", carton2: "#a8743d", cinta: "#f6e9cf", crema: "#f8e3c5", cont: "#0e1a36" };
+  const PROD = [
+    { nombre: "rojo", color: "#ef4b37", osc: "#b22a1a" }, { nombre: "azul", color: "#3d7df0", osc: "#1f4fb0" },
+    { nombre: "amarillo", color: "#f7c12f", osc: "#b88a0c" }, { nombre: "verde", color: "#25b887", osc: "#12775a" },
+  ];
+
+  // Mapas: # pared · . piso · C cajas · 1-4 estante · V escáner · S selladora · D camión · T mesa · B basura
+  const NIVELES = [
+    { id: "n1", nombre: "Primer día", desc: "Pedidos de un solo producto.",
+      tiempo: 75, prods: 2, tam: [1, 1], cada: 6.5, paciencia: 36, maxAb: 3, metas: [120, 240, 360],
+      mapa: ["#C#1#2#", ".......", ".......", "..TTT..", ".......", ".......", ".......", "#S#B#D#"], ini: [3, 5] },
+    { id: "n2", nombre: "Pedidos dobles", desc: "Tres productos y cajas con dos artículos.",
+      tiempo: 80, prods: 3, tam: [1, 2], cada: 7, paciencia: 36, maxAb: 4, metas: [150, 270, 400],
+      mapa: ["C#1#2#3", ".......", ".......", "T.....T", "..###..", ".......", ".......", "#S#B#D#"], ini: [3, 5] },
+    { id: "n3", nombre: "Control de calidad", desc: "Hay que escanear cada caja antes de sellarla.",
+      tiempo: 90, prods: 3, tam: [1, 2], cada: 7.5, paciencia: 40, maxAb: 4, escaner: true, metas: [130, 210, 290],
+      mapa: ["#1#2#3#", ".......", "C.....V", "..TT...", ".......", "T......", ".......", "#S#B#D#"], ini: [3, 4] },
+    { id: "n4", nombre: "Camión en ruta", desc: "Cuatro productos y el camión va y viene.",
+      tiempo: 95, prods: 4, tam: [1, 3], cada: 7.5, paciencia: 44, maxAb: 4, escaner: true, camion: { presente: 13, fuera: 6 }, metas: [110, 180, 245],
+      mapa: ["1#2#3#4", ".......", "C..#..V", "...#...", "T.....T", ".......", ".......", "S##B##D"], ini: [1, 5] },
+    { id: "n5", nombre: "Buen Fin", desc: "Pedidos grandes, camión en ruta y un montacargas suelto.",
+      tiempo: 100, prods: 4, tam: [2, 3], cada: 7, paciencia: 46, maxAb: 4, escaner: true, camion: { presente: 13, fuera: 6 },
+      monta: { fila: 4, vel: 2.3 }, metas: [120, 200, 280],
+      mapa: ["1#2#3#4", ".......", "C.TTT.V", ".......", ".......", "T.....T", ".......", "S#B###D"], ini: [3, 6] },
+  ];
+
+  // ---------- guardado ----------
+  function leer() { try { return JSON.parse(localStorage.getItem(CLAVE)) || {}; } catch (e) { return {}; } }
+  function guardar(o) { try { localStorage.setItem(CLAVE, JSON.stringify(o)); } catch (e) { /* sin almacenamiento */ } }
+  function estrellasDe(datos, i) { const d = datos[NIVELES[i].id]; return d ? d.e : 0; }
+  function abierto(datos, i) { return i === 0 || estrellasDe(datos, i - 1) >= 1; }
+  function todoGanado(datos) { for (let i = 0; i < NIVELES.length; i++) if (estrellasDe(datos, i) < 1) return false; return true; }
+
+  // ---------- sonido ----------
+  let ac = null, mudo = leer().mudo === true;
+  function activarAudio() {
+    try {
+      if (!ac) { const K = window.AudioContext || window.webkitAudioContext; if (K) ac = new K(); }
+      if (ac && ac.state === "suspended") ac.resume();
+    } catch (e) { ac = null; }
+  }
+  function tono(f, dur, tipo, vol, espera, f2) {
+    if (mudo || !ac) return;
+    try {
+      const t = ac.currentTime + (espera || 0), o = ac.createOscillator(), gn = ac.createGain();
+      o.type = tipo || "sine"; o.frequency.setValueAtTime(f, t);
+      if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.01);
+      gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(gn); gn.connect(ac.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { /* sin audio */ }
+  }
+  const SON = {
+    toma: function () { tono(420, 0.09, "triangle", 0.1, 0, 640); },
+    deja: function () { tono(520, 0.09, "triangle", 0.1, 0, 300); },
+    prod: function () { tono(660, 0.06, "square", 0.05); tono(990, 0.07, "square", 0.05, 0.05); },
+    listo: function () { tono(880, 0.1, "sine", 0.12); tono(1175, 0.16, "sine", 0.12, 0.09); },
+    entrega: function () { tono(523, 0.1, "triangle", 0.14); tono(659, 0.1, "triangle", 0.14, 0.09); tono(784, 0.1, "triangle", 0.14, 0.18); tono(1047, 0.22, "triangle", 0.14, 0.27); },
+    no: function () { tono(170, 0.14, "sawtooth", 0.07, 0, 120); },
+    falla: function () { tono(220, 0.16, "sawtooth", 0.09); tono(147, 0.3, "sawtooth", 0.09, 0.14); },
+    golpe: function () { tono(120, 0.25, "square", 0.12, 0, 50); },
+    tic: function () { tono(1000, 0.04, "square", 0.04); },
+    cuenta: function () { tono(440, 0.12, "triangle", 0.13); },
+    ya: function () { tono(880, 0.3, "triangle", 0.15); tono(1320, 0.3, "triangle", 0.08); },
+    estrella: function () { tono(1320, 0.08, "sine", 0.1); tono(1760, 0.2, "sine", 0.1, 0.07); },
+    pasa: function () { tono(600, 0.05, "triangle", 0.06, 0, 900); },
+    gana: function () { [523, 659, 784, 1047].forEach(function (f, i) { tono(f, 0.2, "triangle", 0.14, i * 0.12); }); },
+  };
+  function pintarSonido() {
+    $("bSon").innerHTML = mudo
+      ? '<svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8zM13 8l4 4M17 8l-4 4"/></svg>'
+      : '<svg viewBox="0 0 20 20"><path d="M3 8v4h3l4 3V5L6 8zM13 7.5a3.5 3.5 0 0 1 0 5M15.5 5.5a6.5 6.5 0 0 1 0 9"/></svg>';
+  }
+
+  // ---------- piezas SVG compartidas (menú, intro, pistas) ----------
+  const FORMAS = ['<circle cx="12" cy="12" r="8.5"/>', '<rect x="4" y="4" width="16" height="16" rx="3.5"/>',
+                  '<path d="M12 3.5 21 19.5H3z" stroke-linejoin="round"/>', '<path d="M12 2.5 21.5 12 12 21.5 2.5 12z" stroke-linejoin="round"/>'];
+  function svgProd(i) { return '<svg viewBox="0 0 24 24" fill="' + PROD[i].color + '" stroke="' + PROD[i].osc + '" stroke-width="2">' + FORMAS[i] + "</svg>"; }
+  function gObrero(x, y, s, cls) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="${cls || ""}">
+      <ellipse cx="0" cy="30" rx="15" ry="4" fill="rgba(0,0,0,.25)"/>
+      <ellipse cx="-6" cy="27" rx="5" ry="3.5" fill="#0e1a36"/><ellipse cx="6" cy="27" rx="5" ry="3.5" fill="#0e1a36"/>
+      <rect x="-13" y="2" width="26" height="23" rx="9" fill="#ff7a1a" stroke="#0e1a36" stroke-width="2"/>
+      <rect x="-13" y="13" width="26" height="3.5" fill="#ffe0b0"/><rect x="-1.5" y="3" width="3" height="21" fill="#0e1a36"/>
+      <circle cx="-15" cy="14" r="4" fill="#f8e3c5" stroke="#0e1a36" stroke-width="2"/><circle cx="15" cy="14" r="4" fill="#f8e3c5" stroke="#0e1a36" stroke-width="2"/>
+      <circle cx="0" cy="-7" r="10.5" fill="#f8e3c5" stroke="#0e1a36" stroke-width="2"/>
+      <path d="M-11-9a11 11 0 0 1 22 0z" fill="#f2b632" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><rect x="-12" y="-10.5" width="26" height="3.5" rx="1.7" fill="#f2b632" stroke="#0e1a36" stroke-width="2"/>
+      <circle cx="-3" cy="-4" r="1.5" fill="#0e1a36"/><circle cx="5" cy="-4" r="1.5" fill="#0e1a36"/><path d="M-2 1q3 2.5 6 0" fill="none" stroke="#0e1a36" stroke-width="1.5" stroke-linecap="round"/>
+    </g></g>`;
+  }
+  function gCaja(x, y, s, cls, estilo) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="${cls || ""}" style="${estilo || ""}">
+      <rect x="-12" y="-10" width="24" height="22" rx="3" fill="#a8743d" stroke="#0e1a36" stroke-width="2"/><rect x="-12" y="-10" width="24" height="17" rx="3" fill="#d39a5b" stroke="#0e1a36" stroke-width="2"/>
+      <rect x="-3" y="-10" width="6" height="17" fill="#f6e9cf"/></g></g>`;
+  }
+  function gCamion(x, y, s, cls) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="${cls || ""}">
+      <ellipse cx="0" cy="26" rx="52" ry="5" fill="rgba(0,0,0,.25)"/>
+      <rect x="-50" y="-22" width="64" height="42" rx="5" fill="#fff" stroke="#0e1a36" stroke-width="2.5"/><rect x="-50" y="6" width="64" height="6" fill="#ff7a1a"/>
+      <path d="M14-10h20l12 14v16H14z" fill="#24396e" stroke="#0e1a36" stroke-width="2.5" stroke-linejoin="round"/><path d="M19-5h13l8 9H19z" fill="#bfe3ff" stroke="#0e1a36" stroke-width="2"/>
+      <circle cx="-30" cy="22" r="8" fill="#0e1a36"/><circle cx="-30" cy="22" r="3" fill="#aab4c8"/><circle cx="30" cy="22" r="8" fill="#0e1a36"/><circle cx="30" cy="22" r="3" fill="#aab4c8"/>
+      <g transform="translate(-18 -4)"><rect x="-10" y="-8" width="20" height="16" rx="2" fill="#d39a5b" stroke="#0e1a36" stroke-width="1.8"/><rect x="-2.5" y="-8" width="5" height="16" fill="#f6e9cf"/></g>
+    </g></g>`;
+  }
+
+  // ---------- intro ----------
+  const ESCENAS = [
+    { sup: "Lunes · 7:58 a. m.", txt: "Paquetería <i>Los Chispitas</i>. Hoy es tu primer día.",
+      arte: `<svg viewBox="0 0 320 210"><defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2c66"/><stop offset=".6" stop-color="#f08a4b"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs>
+        <rect width="320" height="210" fill="url(#cielo)"/><circle class="a-sol" cx="76" cy="112" r="50" fill="rgba(255,241,184,.25)"/><circle class="a-sol" cx="76" cy="112" r="34" fill="#fff1b8"/>
+        <rect x="0" y="150" width="320" height="60" fill="#2a3557"/><rect x="0" y="150" width="320" height="6" fill="#3b4870"/>
+        <path d="M0 184h40M60 184h40M120 184h40M180 184h40M240 184h40M300 184h20" stroke="#f2b632" stroke-width="4"/>
+        <rect x="150" y="62" width="160" height="92" fill="#182a55" stroke="#0e1a36" stroke-width="3"/><path d="M142 64 230 34 318 64z" fill="#24396e" stroke="#0e1a36" stroke-width="3" stroke-linejoin="round"/>
+        <rect x="176" y="72" width="108" height="20" rx="4" fill="#ff7a1a" stroke="#0e1a36" stroke-width="2.5"/><text x="230" y="86.5" text-anchor="middle" font-family="JBMono,monospace" font-weight="700" font-size="12" fill="#fff">PAQUETERÍA</text>
+        <rect x="196" y="102" width="68" height="52" fill="#0e1a36"/><path d="M196 112h68M196 122h68M196 132h68M196 142h68" stroke="#24396e" stroke-width="2"/>
+        ${gCamion(86, 144, 1, "a-camion")}${gObrero(284, 146, 0.9, "a-rebota")}</svg>` },
+    { sup: "8:01 a. m.", txt: "Y ya llovieron los pedidos. ¡Los clientes <i>no esperan</i>!",
+      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#24396e"/><rect y="150" width="320" height="60" fill="#dfe4ec"/><rect y="150" width="320" height="6" fill="#b9c3d8"/>
+        <rect x="20" y="20" width="116" height="66" rx="8" fill="#182a55" stroke="#0e1a36" stroke-width="3"/><path d="M32 70 56 48l18 14 22-28 28 36" fill="none" stroke="#ff7a1a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        ${[0, 1, 2, 3, 4, 5, 6].map(function (i) {
+          const x = 176 + (i % 4) * 34 - (i > 3 ? -17 : 0), y = i > 3 ? 96 : 46, r = (i * 37 % 30) - 15;
+          return `<g transform="translate(${x} ${y}) rotate(${r})"><g class="a-cae" style="animation-delay:${0.25 + i * 0.16}s"><rect x="-13" y="-17" width="26" height="34" rx="3" fill="#fffaf0" stroke="#0e1a36" stroke-width="2"/><g transform="translate(-8 -12) scale(.66)" fill="${PROD[i % 4].color}" stroke="${PROD[i % 4].osc}" stroke-width="2">${FORMAS[i % 4]}</g><rect x="-9" y="9" width="18" height="4" rx="2" fill="${i % 3 ? "#1fa67a" : "#e5412d"}"/></g></g>`;
+        }).join("")}
+        <g transform="translate(78 150)"><g class="a-tiembla">${gObrero(0, 0, 1.25, "")}</g></g>
+        <path class="a-gota" d="M106 112q5 8 0 11-5-3 0-11z" fill="#bfe3ff" stroke="#0e1a36" stroke-width="1.5"/>
+        <text x="110" y="112" font-family="JBMono,monospace" font-weight="700" font-size="20" fill="#fff" class="a-tiembla">¡¿?!</text></svg>` },
+    { sup: "Tu trabajo", txt: "Caja, producto, <i>escáner</i>, cinta… ¡y al camión!",
+      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#182a55"/><rect y="136" width="320" height="74" fill="#dfe4ec"/><rect x="14" y="126" width="292" height="14" rx="7" fill="#59657f" stroke="#0e1a36" stroke-width="2.5"/>
+        <path d="M26 133h268" stroke="#0e1a36" stroke-width="2" stroke-dasharray="8 8"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".5s" repeatCount="indefinite"/></path>
+        ${[["#d39a5b", "CAJA"], ["#ff7a1a", "SURTIR"], ["#26365f", "ESCÁNER"], ["#aab4c8", "SELLAR"]].map(function (d, i) {
+          return `<g transform="translate(${40 + i * 60} 50)"><g class="a-pop" style="animation-delay:${0.2 + i * 0.22}s"><rect x="-22" y="-22" width="44" height="44" rx="12" fill="${d[0]}" stroke="#0e1a36" stroke-width="3"/><text y="38" text-anchor="middle" font-family="JBMono,monospace" font-weight="700" font-size="9" fill="#fff">${d[1]}</text>
+            ${["<rect x='-11' y='-9' width='22' height='18' rx='2' fill='#a8743d' stroke='#0e1a36' stroke-width='2'/><rect x='-3' y='-9' width='6' height='18' fill='#f6e9cf'/>",
+               "<circle r='11' fill='#fff'/><circle r='6' fill='#ef4b37' stroke='#b22a1a' stroke-width='2'/>",
+               "<rect x='-13' y='-11' width='26' height='22' rx='3' fill='#0e1a36'/><rect x='-11' y='-2' width='22' height='3' fill='#3cffaa'><animate attributeName='y' values='-8;6;-8' dur='1.2s' repeatCount='indefinite'/></rect>",
+               "<circle r='11' fill='#f6e9cf' stroke='#0e1a36' stroke-width='2'/><circle r='4' fill='#59657f'/>"][i]}</g></g>`;
+        }).join("")}
+        <path d="M66 50h8M126 50h8M186 50h8M246 50h8" stroke="#ff7a1a" stroke-width="4" stroke-linecap="round"/>
+        ${gCamion(286, 48, 0.5, "a-rebota")}
+        <g class="a-viaje">${gCaja(40, 114, 1, "", "")}</g>
+        ${gObrero(160, 176, 1, "a-rebota")}</svg>` },
+    { sup: "La recompensa", txt: "Aguanta los <i>5 turnos</i> y te llevas un premio en el stand.",
+      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#3a1f5c"/><circle cx="160" cy="100" r="88" fill="rgba(255,195,92,.16)"/><circle cx="160" cy="100" r="60" fill="rgba(255,195,92,.2)"/>
+        ${[[60, 44], [262, 52], [44, 132], [276, 140], [112, 24], [214, 22]].map(function (p, i) {
+          return `<path class="a-brilla" style="animation-delay:${i * 0.18}s" transform="translate(${p[0]} ${p[1]})" d="M0-11 3-3l8 3-8 3-3 8-3-8-8-3 8-3z" fill="#ffd27a"/>`;
+        }).join("")}
+        <g transform="translate(160 106)"><g class="a-rebota"><rect x="-44" y="-18" width="88" height="56" rx="7" fill="#ff7a1a" stroke="#0e1a36" stroke-width="3.5"/><rect x="-50" y="-34" width="100" height="22" rx="6" fill="#ffa24d" stroke="#0e1a36" stroke-width="3.5"/>
+          <rect x="-8" y="-34" width="16" height="72" fill="#fff" stroke="#0e1a36" stroke-width="3"/><path d="M0-34c-8-22-34-20-28-6 4 8 18 8 28 6zm0 0c8-22 34-20 28-6-4 8-18 8-28 6z" fill="#fff" stroke="#0e1a36" stroke-width="3.5" stroke-linejoin="round"/></g></g>
+        ${[0, 1, 2, 3, 4].map(function (i) { return `<text class="a-pop" style="animation-delay:${0.5 + i * 0.18}s" x="${104 + i * 28}" y="192" text-anchor="middle" font-size="26" fill="#f2b632" stroke="#0e1a36" stroke-width="1.2">★</text>`; }).join("")}</svg>` },
+  ];
+  let introIdx = 0, introTimer = 0, introLetras = 0;
+  function textoPlano(html) { return html.replace(/<[^>]+>/g, ""); }
+  function pintarEscena() {
+    const e = ESCENAS[introIdx];
+    $("escena").innerHTML = e.arte;
+    $("iSup").textContent = e.sup;
+    $("iPuntos").innerHTML = ESCENAS.map(function (_, i) { return '<i class="' + (i === introIdx ? "on" : "") + '"></i>'; }).join("");
+    $("iSig").textContent = introIdx === ESCENAS.length - 1 ? "¡A trabajar!" : "Siguiente";
+    $("iSig").classList.toggle("verde", introIdx === ESCENAS.length - 1);
+    clearInterval(introTimer);
+    const plano = textoPlano(e.txt);
+    introLetras = 0; $("iTxt").textContent = "";
+    introTimer = setInterval(function () {
+      introLetras += 2;
+      if (introLetras >= plano.length) { clearInterval(introTimer); introLetras = plano.length; $("iTxt").innerHTML = e.txt; }
+      else $("iTxt").textContent = plano.slice(0, introLetras);
+    }, 28);
+  }
+  function abrirIntro() { introIdx = 0; $("intro").classList.remove("fuera"); $("intro").hidden = false; pintarEscena(); }
+  function cerrarIntro() {
+    clearInterval(introTimer);
+    const d = leer(); d.intro = true; guardar(d);
+    $("intro").classList.add("fuera");
+    setTimeout(function () { $("intro").hidden = true; $("escena").innerHTML = ""; }, 340);
+  }
+  function avanzarIntro() {
+    if ($("intro").classList.contains("fuera")) return;
+    activarAudio();
+    const e = ESCENAS[introIdx];
+    if (introLetras < textoPlano(e.txt).length) { clearInterval(introTimer); introLetras = 1e9; $("iTxt").innerHTML = e.txt; return; }
+    SON.pasa();
+    if (introIdx < ESCENAS.length - 1) { introIdx++; pintarEscena(); } else cerrarIntro();
+  }
+
+  // ---------- utilidades de dibujo ----------
+  const lienzo = $("lienzo"), g = lienzo.getContext("2d");
+  let S = 48, DPR = 1, anchoCss = 0, altoCss = 0, fondoCv = null;
+  const FUENTE = "JBMono, ui-monospace, Menlo, monospace";
+  function rr(c, x, y, w, h, r) {
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
+    c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r); c.lineTo(x + w, y + h - r);
+    c.arcTo(x + w, y + h, x + w - r, y + h, r); c.lineTo(x + r, y + h); c.arcTo(x, y + h, x, y + h - r, r);
+    c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r); c.closePath();
+  }
+  function caja2(x, y, w, h, r, color, borde) {
+    g.beginPath(); rr(g, x, y, w, h, r); g.fillStyle = color; g.fill();
+    if (borde) { g.lineWidth = borde; g.strokeStyle = C.cont; g.stroke(); }
+  }
+  const lw = function (k) { return Math.max(1.2, S * k); };
+  function dibProd(i, x, y, r) {
+    g.beginPath();
+    if (i === 0) g.arc(x, y, r, 0, 6.2832);
+    else if (i === 1) rr(g, x - r * 0.9, y - r * 0.9, r * 1.8, r * 1.8, r * 0.35);
+    else if (i === 2) { g.moveTo(x, y - r * 1.05); g.lineTo(x + r * 1.08, y + r * 0.85); g.lineTo(x - r * 1.08, y + r * 0.85); g.closePath(); }
+    else { g.moveTo(x, y - r * 1.12); g.lineTo(x + r * 1.12, y); g.lineTo(x, y + r * 1.12); g.lineTo(x - r * 1.12, y); g.closePath(); }
+    g.fillStyle = PROD[i].color; g.fill();
+    g.lineWidth = Math.max(1, r * 0.22); g.strokeStyle = PROD[i].osc; g.lineJoin = "round"; g.stroke();
+    g.beginPath(); g.arc(x - r * 0.3, y - r * 0.32, r * 0.2, 0, 6.2832); g.fillStyle = "rgba(255,255,255,.5)"; g.fill();
+  }
+  function texto(txt, x, y, tam, color, borde) {
+    g.font = "700 " + tam + "px " + FUENTE; g.textAlign = "center"; g.textBaseline = "middle";
+    if (borde) { g.lineWidth = tam * 0.28; g.strokeStyle = borde; g.lineJoin = "round"; g.strokeText(txt, x, y); }
+    g.fillStyle = color; g.fillText(txt, x, y);
+  }
+  function anillo(cx, cy, r, frac, color) {
+    g.beginPath(); g.arc(cx, cy, r + lw(0.035), 0, 6.2832); g.fillStyle = C.cont; g.fill();
+    g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.fillStyle = "#fff"; g.fill();
+    g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, r, -1.5708, -1.5708 + 6.2832 * Math.max(0, Math.min(1, frac))); g.closePath(); g.fillStyle = color; g.fill();
+  }
+  const suave = function (k) { return k < 0 ? 0 : k > 1 ? 1 : 1 - (1 - k) * (1 - k) * (1 - k); };
+  const rebote = function (k) { if (k >= 1) return 1; if (k <= 0) return 0; const c = 2.2; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+
+  // Bloque con volumen: sombra, cara frontal, tapa, brillo y contorno
+  function bloque(px, py, tapa, frente, alto) {
+    const m = S * 0.04, w = S - 2 * m, a = S * (alto || 0.16), r = S * 0.15;
+    g.beginPath(); rr(g, px + m + S * 0.03, py + m + S * 0.09, w, w, r); g.fillStyle = "rgba(14,26,54,.2)"; g.fill();
+    g.beginPath(); rr(g, px + m, py + m, w, w, r); g.fillStyle = frente; g.fill();
+    g.beginPath(); rr(g, px + m, py + m, w, w - a, r); g.fillStyle = tapa; g.fill();
+    g.beginPath(); rr(g, px + m + S * 0.08, py + m + S * 0.05, w - S * 0.16, S * 0.05, S * 0.025); g.fillStyle = "rgba(255,255,255,.28)"; g.fill();
+    g.beginPath(); rr(g, px + m, py + m, w, w, r); g.lineWidth = lw(0.035); g.strokeStyle = C.cont; g.stroke();
+  }
+
+  // ---------- estado ----------
+  let G = null, nivelIdx = 0, corriendo = false, raf = 0, ultimo = 0;
+  let pistaTxt = null, aviso = "", avisoHasta = 0, rachaVista = 0;
+  const tkEls = new Map();
+
+  function nuevaPartida(i) {
+    const def = NIVELES[i], H = def.mapa.length, W = def.mapa[0].length;
+    const celdas = [], est = [];
+    for (let y = 0; y < H; y++) {
+      celdas.push([]);
+      for (let x = 0; x < W; x++) {
+        const ch = def.mapa[y][x];
+        let e = null;
+        if (ch === ".") { celdas[y].push(null); continue; }
+        if (ch === "#") e = { tipo: "pared" };
+        else if (ch === "C") e = { tipo: "cajas" };
+        else if (ch === "V") e = { tipo: "escaner" };
+        else if (ch === "S") e = { tipo: "selladora" };
+        else if (ch === "D") e = { tipo: "muelle" };
+        else if (ch === "T") e = { tipo: "mesa" };
+        else if (ch === "B") e = { tipo: "basura" };
+        else e = { tipo: "estante", prod: +ch - 1 };
+        e.x = x; e.y = y; e.item = null; e.pulso = 0;
+        celdas[y].push(e); est.push(e);
+      }
+    }
+    let monta = null;
+    if (def.monta) monta = { y: def.monta.fila, x: 0, dir: 1, x0: 0, x1: W - 1, v: def.monta.vel, pausa: 1.5 };
+    return {
+      def: def, W: W, H: H, celdas: celdas, est: est,
+      jug: { x: def.ini[0], y: def.ini[1], cx: def.ini[0], cy: def.ini[1], ruta: [], obj: null, item: null, trab: null,
+             atur: 0, inmune: 0, fx: 0, fy: 1, paso: 0, mov: false, squash: 0, polvo: 0, feliz: 0 },
+      pedidos: [], salidas: {}, idPed: 0, sigPed: 0.4, t: 0, reloj: 0, restante: def.tiempo, puntos: 0, racha: 0, rachaMax: 0, entregados: 0, perdidos: 0,
+      previa: 3.4, cuentaSeg: 9, cierre: 0,
+      camion: { presente: true, reloj: def.camion ? def.camion.presente : Infinity, anim: 0, bote: 0 },
+      monta: monta, fx: [], parts: [], vuelos: [], polvos: [], toque: null, sacude: 0, ticSeg: 99, fin: false, estrellas: 0,
+    };
+  }
+
+  const esPiso = function (x, y) { return x >= 0 && y >= 0 && x < G.W && y < G.H && G.celdas[y][x] === null; };
+  const E = function (tipo) { for (let i = 0; i < G.est.length; i++) if (G.est[i].tipo === tipo) return G.est[i]; return null; };
+
+  function bfs(ox, oy) {
+    const W = G.W, H = G.H, dist = new Array(W * H).fill(-1), prev = new Array(W * H).fill(-1), cola = [oy * W + ox];
+    dist[oy * W + ox] = 0;
+    for (let q = 0; q < cola.length; q++) {
+      const c = cola[q], x = c % W, y = (c - x) / W;
+      const vec = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
+      for (let k = 0; k < 4; k++) {
+        const nx = vec[k][0], ny = vec[k][1];
+        if (!esPiso(nx, ny)) continue;
+        const n = ny * W + nx;
+        if (dist[n] < 0) { dist[n] = dist[c] + 1; prev[n] = c; cola.push(n); }
+      }
+    }
+    return { dist: dist, prev: prev };
+  }
+
+  // El jugador toca una celda: caminar ahí (piso) o ir a usar la estación
+  function tocarCelda(tx, ty) {
+    if (!G || G.fin || !corriendo || G.previa > 0) return;
+    if (tx < 0 || ty < 0 || tx >= G.W || ty >= G.H) return;
+    const j = G.jug, e = G.celdas[ty][tx];
+    if (e && e.tipo === "pared") return;
+    G.toque = { x: tx, y: ty, t: 0 };
+    let ox = j.cx, oy = j.cy;
+    if (j.ruta.length) {
+      const n = j.ruta[0];
+      if (Math.hypot(j.x - n[0], j.y - n[1]) < Math.hypot(j.x - j.cx, j.y - j.cy)) { ox = n[0]; oy = n[1]; }
+    }
+    const info = bfs(ox, oy), W = G.W;
+    let meta = -1;
+    if (e) {
+      const vec = [[tx, ty + 1], [tx, ty - 1], [tx + 1, ty], [tx - 1, ty]];
+      for (let k = 0; k < 4; k++) {
+        const nx = vec[k][0], ny = vec[k][1];
+        if (!esPiso(nx, ny)) continue;
+        const n = ny * W + nx;
+        if (info.dist[n] >= 0 && (meta < 0 || info.dist[n] < info.dist[meta])) meta = n;
+      }
+    } else if (info.dist[ty * W + tx] >= 0) meta = ty * W + tx;
+    if (meta < 0) return;
+    const camino = [];
+    for (let c = meta; c !== oy * W + ox; c = info.prev[c]) camino.push([c % W, (c - c % W) / W]);
+    camino.push([ox, oy]);
+    camino.reverse();
+    j.ruta = camino; j.obj = e || null; j.trab = null;
+  }
+
+  function nuevaCaja() { return { cont: [], verif: false, sell: false, scan: 0, sello: 0, an: null, pop: 0 }; }
+  const clave = function (cont) { return cont.slice().sort().join(""); };
+  function avisar(txt) { aviso = txt; avisoHasta = performance.now() + 1900; }
+  function negar(txt) { avisar(txt); SON.no(); G.jug.squash = -0.2; }
+  function flota(x, y, txt, color) { G.fx.push({ x: x, y: y, txt: txt, color: color, t: 0 }); }
+  function confeti(x, y, n) {
+    const cols = [C.naranja, C.verde, C.amar, "#3d7df0", "#fff"];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.283, v = 1.5 + Math.random() * 3.4;
+      G.parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2.4, t: 0, c: cols[i % cols.length], r: Math.random() * 6.28, d: 0.8 + Math.random() * 0.5 });
+    }
+  }
+  // posiciones (en celdas) de la caja en la mano y sobre una estación
+  const manoX = function () { return G.jug.x; }, manoY = function () { return G.jug.y - 0.66; };
+  function alaMano(it, e) { it.an = { x: e.x, y: e.y - 0.12, t: 0 }; }
+  function alaEstacion(it) { it.an = { x: manoX(), y: manoY(), t: 0 }; }
+
+  function usar(e) {
+    const j = G.jug, it = j.item, def = G.def;
+    e.pulso = 1; j.squash = 0.18;
+    switch (e.tipo) {
+      case "cajas":
+        if (it) negar("Ya llevas una caja en las manos.");
+        else { j.item = nuevaCaja(); alaMano(j.item, e); SON.toma(); }
+        break;
+      case "estante":
+        if (!it) negar("Primero toma una caja vacía en CAJAS.");
+        else if (it.sell) negar("Esa caja ya está sellada.");
+        else if (it.verif) negar("Ya fue escaneada: no puedes agregar más.");
+        else if (it.cont.length >= MAX_PROD) negar("La caja está llena (máximo " + MAX_PROD + ").");
+        else {
+          it.cont.push(e.prod); it.pop = 1; SON.prod();
+          G.vuelos.push({ tipo: "prod", prod: e.prod, x: e.x, y: e.y - 0.1, t: 0 });
+        }
+        break;
+      case "mesa":
+        if (it || e.item) {
+          const tmp = e.item; e.item = it; j.item = tmp;
+          if (it) alaEstacion(it);
+          if (tmp) alaMano(tmp, e);
+          if (it) SON.deja(); else SON.toma();
+        }
+        break;
+      case "escaner":
+        if (it) {
+          if (e.item) negar("El escáner está ocupado.");
+          else if (it.sell) negar("Esa caja ya está sellada.");
+          else if (!it.cont.length) negar("La caja está vacía: primero surte el pedido.");
+          else if (it.verif) negar("Esa caja ya fue escaneada.");
+          else { e.item = it; j.item = null; alaEstacion(it); SON.deja(); }
+        } else if (e.item) { j.item = e.item; e.item = null; alaMano(j.item, e); SON.toma(); }
+        break;
+      case "selladora":
+        if (it) {
+          if (e.item) negar("La selladora está ocupada.");
+          else if (it.sell) negar("Esa caja ya está sellada: llévala al camión.");
+          else if (!it.cont.length) negar("La caja está vacía: primero surte el pedido.");
+          else if (def.escaner && !it.verif) negar("Falta escanearla en el ESCÁNER.");
+          else { e.item = it; j.item = null; j.trab = e; alaEstacion(it); SON.deja(); }
+        } else if (e.item) {
+          if (e.item.sell) { j.item = e.item; e.item = null; alaMano(j.item, e); SON.toma(); }
+          else j.trab = e;
+        }
+        break;
+      case "muelle":
+        if (!it) negar("Trae aquí una caja sellada.");
+        else if (!it.sell) negar("Falta sellar la caja.");
+        else if (!G.camion.presente) negar("El camión anda en ruta: espera a que regrese.");
+        else entregar(e);
+        break;
+      case "basura":
+        if (it) {
+          j.item = null; avisar("Caja a la basura."); SON.deja();
+          G.vuelos.push({ tipo: "caja", item: it, x: manoX(), y: manoY(), x1: e.x, y1: e.y - 0.1, t: 0 });
+        }
+        break;
+    }
+  }
+
+  function entregar(e) {
+    const j = G.jug, it = j.item, k = clave(it.cont);
+    let ped = null;
+    for (let i = 0; i < G.pedidos.length; i++) if (clave(G.pedidos[i].cont) === k) { ped = G.pedidos[i]; break; }
+    j.item = null;
+    G.vuelos.push({ tipo: "caja", item: it, x: manoX(), y: manoY(), x1: e.x, y1: e.y - 0.05, t: 0 });
+    if (!ped) {
+      G.puntos = Math.max(0, G.puntos - 5); G.racha = 0;
+      flota(e.x, e.y - 0.4, "−5", C.rojo); negar("Nadie pidió esa caja."); G.sacude = 0.25;
+      return;
+    }
+    G.pedidos.splice(G.pedidos.indexOf(ped), 1); G.salidas[ped.id] = "ok";
+    const base = 20 + 10 * ped.cont.length, propina = Math.round(10 * Math.max(0, ped.t) / ped.max), bono = Math.min(G.racha, 4) * 5;
+    const total = base + propina + bono;
+    G.puntos += total; G.racha++; G.entregados++; if (G.racha > G.rachaMax) G.rachaMax = G.racha;
+    G.camion.bote = 1; j.feliz = 1.2;
+    flota(e.x, e.y - 0.6, "+" + total, C.verde);
+    confeti(e.x, e.y - 0.3, 22);
+    avisar(G.racha > 1 ? "¡Pedido despachado! Racha de " + G.racha + "." : "¡Pedido despachado!");
+    SON.entrega();
+    const p = $("ptsC"); p.classList.remove("pop"); void p.offsetWidth; p.classList.add("pop");
+    if (!G.pedidos.length) G.sigPed = Math.min(G.sigPed, 1.2);
+  }
+
+  function crearPedido() {
+    const d = G.def, n = d.tam[0] + Math.floor(Math.random() * (d.tam[1] - d.tam[0] + 1)), cont = [];
+    for (let i = 0; i < n; i++) cont.push(Math.floor(Math.random() * d.prods));
+    const max = d.paciencia + 7 * (n - 1);
+    G.pedidos.push({ id: ++G.idPed, cont: cont.sort(), t: max, max: max });
+  }
+
+  // ---------- actualización ----------
+  function actualizar(dt) {
+    const j = G.jug, d = G.def;
+    G.t += dt; G.restante -= dt;
+    if (G.restante <= 0) { G.restante = 0; G.fin = true; G.cierre = 1.5; j.ruta = []; j.obj = null; j.trab = null; j.mov = false; SON.ya(); return; }
+    const seg = Math.ceil(G.restante);
+    if (seg <= 10 && seg !== G.ticSeg) { G.ticSeg = seg; SON.tic(); }
+
+    // pedidos
+    G.sigPed -= dt;
+    if (G.sigPed <= 0) {
+      if (G.pedidos.length < d.maxAb) { crearPedido(); G.sigPed = d.cada; }
+      else G.sigPed = 1;
+    }
+    for (let i = G.pedidos.length - 1; i >= 0; i--) {
+      const p = G.pedidos[i]; p.t -= dt;
+      if (p.t <= 0) {
+        G.pedidos.splice(i, 1); G.salidas[p.id] = "mal"; G.perdidos++; G.racha = 0; G.puntos = Math.max(0, G.puntos - 15);
+        avisar("Un cliente se cansó de esperar: −15."); SON.falla(); G.sacude = 0.3;
+        const b = $("pedidos"); b.classList.remove("falla"); void b.offsetWidth; b.classList.add("falla");
+        if (!G.pedidos.length) G.sigPed = Math.min(G.sigPed, 1.2);
+      }
+    }
+
+    // camión que va y viene
+    const cam = G.camion;
+    if (d.camion) {
+      cam.reloj -= dt;
+      if (cam.reloj <= 0) {
+        cam.presente = !cam.presente; cam.reloj = cam.presente ? d.camion.presente : d.camion.fuera;
+        if (cam.presente) { SON.listo(); cam.bote = 1; }
+      }
+    }
+
+    // montacargas
+    const m = G.monta;
+    if (m) {
+      if (m.pausa > 0) m.pausa -= dt;
+      else {
+        m.x += m.dir * m.v * dt;
+        if (m.x >= m.x1) { m.x = m.x1; m.dir = -1; m.pausa = 0.9; }
+        else if (m.x <= m.x0) { m.x = m.x0; m.dir = 1; m.pausa = 0.9; }
+      }
+      if (j.inmune <= 0 && Math.abs(j.x - m.x) < 0.72 && Math.abs(j.y - m.y) < 0.55) {
+        j.atur = 1.1; j.inmune = 2.4; j.trab = null; G.sacude = 0.35;
+        avisar("¡Cuidado con el montacargas!"); SON.golpe();
+        for (let i = 0; i < 8; i++) G.polvos.push({ x: j.x + (Math.random() - 0.5) * 0.5, y: j.y + 0.2, t: 0, vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 1.2 });
+      }
+    }
+    if (j.inmune > 0) j.inmune -= dt;
+
+    // jugador
+    j.mov = false;
+    if (j.atur > 0) j.atur -= dt;
+    else {
+      let resto = VEL * dt;
+      while (resto > 0 && j.ruta.length) {
+        const n = j.ruta[0], dx = n[0] - j.x, dy = n[1] - j.y, dist = Math.hypot(dx, dy);
+        if (dist > 0.01) { j.fx = Math.abs(dx) > 0.01 ? Math.sign(dx) : 0; j.fy = Math.abs(dy) > 0.01 ? Math.sign(dy) : 0; j.mov = true; }
+        if (dist <= resto) { j.x = j.cx = n[0]; j.y = j.cy = n[1]; j.ruta.shift(); resto -= dist; }
+        else { j.x += dx / dist * resto; j.y += dy / dist * resto; resto = 0; }
+      }
+      if (j.mov) {
+        j.paso += dt * 13; j.polvo -= dt;
+        if (j.polvo <= 0) { j.polvo = 0.13; G.polvos.push({ x: j.x - j.fx * 0.15, y: j.y + 0.28 - j.fy * 0.1, t: 0, vx: -j.fx * 0.5, vy: -0.3 }); }
+      }
+      if (!j.ruta.length && j.obj) {
+        const e = j.obj; j.obj = null;
+        j.fx = Math.sign(e.x - j.x); j.fy = Math.sign(e.y - j.y);
+        usar(e);
+      }
+    }
+
+    // estaciones con proceso
+    for (let i = 0; i < G.est.length; i++) {
+      const e = G.est[i];
+      if (!e.item) continue;
+      if (e.tipo === "escaner" && !e.item.verif) {
+        e.item.scan += dt;
+        if (e.item.scan >= T_ESCANER) { e.item.verif = true; e.item.pop = 1; e.pulso = 1; SON.listo(); flota(e.x, e.y - 0.6, "✓ lista", C.verde); }
+      } else if (e.tipo === "selladora" && !e.item.sell && j.trab === e && j.atur <= 0) {
+        e.item.sello += dt;
+        if (e.item.sello >= T_SELLO) {
+          e.item.sell = true; e.item.pop = 1; j.trab = null; e.pulso = 1; SON.listo();
+          if (!j.item) { j.item = e.item; e.item = null; alaMano(j.item, e); }
+        }
+      }
+    }
+    const metas = d.metas, ahora = (G.puntos >= metas[0]) + (G.puntos >= metas[1]) + (G.puntos >= metas[2]);
+    if (ahora > G.estrellas) { SON.estrella(); flota(G.W / 2 - 0.5, 0.4, "★★★".slice(0, ahora), C.amar); }
+    G.estrellas = ahora;
+  }
+
+  // animaciones que corren siempre (también en la cuenta regresiva y al cierre)
+  function animar(dt) {
+    const j = G.jug, cam = G.camion;
+    G.reloj += dt;
+    cam.anim += ((cam.presente ? 0 : 1) - cam.anim) * Math.min(1, dt * 5);
+    if (cam.bote > 0) cam.bote = Math.max(0, cam.bote - dt * 2.5);
+    if (j.squash > 0) j.squash = Math.max(0, j.squash - dt); else if (j.squash < 0) j.squash = Math.min(0, j.squash + dt);
+    if (j.feliz > 0) j.feliz -= dt;
+    const avanza = function (it) {
+      if (!it) return;
+      if (it.an) { it.an.t += dt; if (it.an.t >= T_VUELO) it.an = null; }
+      if (it.pop > 0) it.pop = Math.max(0, it.pop - dt * 4);
+    };
+    avanza(j.item);
+    for (let i = 0; i < G.est.length; i++) { const e = G.est[i]; if (e.pulso > 0) e.pulso = Math.max(0, e.pulso - dt * 3.5); avanza(e.item); }
+    for (let i = G.vuelos.length - 1; i >= 0; i--) { G.vuelos[i].t += dt; if (G.vuelos[i].t > (G.vuelos[i].tipo === "prod" ? 0.2 : 0.32)) G.vuelos.splice(i, 1); }
+    for (let i = G.fx.length - 1; i >= 0; i--) { G.fx[i].t += dt; if (G.fx[i].t > 1.3) G.fx.splice(i, 1); }
+    for (let i = G.parts.length - 1; i >= 0; i--) {
+      const p = G.parts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 9 * dt;
+      if (p.t > p.d) G.parts.splice(i, 1);
+    }
+    for (let i = G.polvos.length - 1; i >= 0; i--) {
+      const p = G.polvos[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.t > 0.45) G.polvos.splice(i, 1);
+    }
+    if (G.toque) { G.toque.t += dt; if (G.toque.t > 0.45) G.toque = null; }
+    if (G.sacude > 0) G.sacude = Math.max(0, G.sacude - dt);
+  }
+
+  // ---------- dibujo ----------
+  function ajustar() {
+    if (!G) return;
+    const z = $("zona"), w = z.clientWidth, h = $("cuerpo").clientHeight - $("pedidos").offsetHeight - $("pista").offsetHeight - 26;
+    if (w < 10 || h < 10) return;
+    S = Math.floor(Math.min(w / G.W, h / G.H));
+    anchoCss = S * G.W; altoCss = S * G.H;
+    DPR = Math.min(2.5, window.devicePixelRatio || 1);
+    z.style.height = altoCss + "px";
+    lienzo.style.width = anchoCss + "px"; lienzo.style.height = altoCss + "px";
+    lienzo.style.left = Math.floor((w - anchoCss) / 2) + "px"; lienzo.style.top = "0px";
+    lienzo.width = Math.round(anchoCss * DPR); lienzo.height = Math.round(altoCss * DPR);
+    pintarFondo();
+  }
+
+  // Piso de la bodega: se dibuja una vez por tamaño en un lienzo aparte
+  function pintarFondo() {
+    fondoCv = document.createElement("canvas");
+    fondoCv.width = lienzo.width; fondoCv.height = lienzo.height;
+    const c = fondoCv.getContext("2d"), W = G.W, H = G.H;
+    c.setTransform(DPR, 0, 0, DPR, 0, 0);
+    c.fillStyle = "#c9d0dd"; c.fillRect(0, 0, anchoCss, altoCss);
+    let sem = 7;
+    const azar = function () { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      c.beginPath(); rr(c, x * S + 1, y * S + 1, S - 2, S - 2, S * 0.08);
+      c.fillStyle = (x + y) % 2 ? "#e3e8f0" : "#ebeff5"; c.fill();
+      for (let k = 0; k < 3; k++) { c.fillStyle = "rgba(120,135,165," + (0.1 + azar() * 0.12).toFixed(2) + ")"; c.fillRect(x * S + azar() * S, y * S + azar() * S, S * 0.03, S * 0.03); }
+    }
+    // franjas de seguridad frente al camión y carril del montacargas
+    const md = E("muelle");
+    if (md) {
+      const vec = [[md.x, md.y - 1], [md.x - 1, md.y], [md.x + 1, md.y], [md.x, md.y + 1]];
+      for (let k = 0; k < 4; k++) if (esPiso(vec[k][0], vec[k][1])) {
+        const px = vec[k][0] * S, py = vec[k][1] * S;
+        c.save(); c.beginPath(); rr(c, px + S * 0.08, py + S * 0.08, S * 0.84, S * 0.84, S * 0.1); c.clip();
+        c.fillStyle = "rgba(242,182,50,.3)"; c.fillRect(px, py, S, S);
+        c.strokeStyle = "rgba(242,182,50,.9)"; c.lineWidth = S * 0.07;
+        for (let i = -2; i < 5; i++) { c.beginPath(); c.moveTo(px + i * S * 0.28, py + S); c.lineTo(px + i * S * 0.28 + S, py); c.stroke(); }
+        c.restore();
+        c.beginPath(); rr(c, px + S * 0.08, py + S * 0.08, S * 0.84, S * 0.84, S * 0.1); c.strokeStyle = "#e0a516"; c.lineWidth = S * 0.05; c.stroke();
+        break;
+      }
+    }
+    if (G.monta) {
+      const y = G.monta.y * S;
+      c.fillStyle = "rgba(242,182,50,.2)"; c.fillRect(0, y, anchoCss, S);
+      c.strokeStyle = "#e9ad1c"; c.lineWidth = Math.max(2, S * 0.07); c.setLineDash([S * 0.3, S * 0.18]);
+      c.beginPath(); c.moveTo(0, y + S * 0.06); c.lineTo(anchoCss, y + S * 0.06); c.moveTo(0, y + S * 0.94); c.lineTo(anchoCss, y + S * 0.94); c.stroke(); c.setLineDash([]);
+      c.fillStyle = "rgba(200,140,10,.5)";
+      for (let x = 1; x < W; x += 2) {
+        c.beginPath(); c.moveTo(x * S + S * 0.35, y + S * 0.38); c.lineTo(x * S + S * 0.65, y + S * 0.5); c.lineTo(x * S + S * 0.35, y + S * 0.62); c.closePath(); c.fill();
+      }
+    }
+    const v = c.createRadialGradient(anchoCss / 2, altoCss / 2, Math.min(anchoCss, altoCss) * 0.35, anchoCss / 2, altoCss / 2, Math.max(anchoCss, altoCss) * 0.75);
+    v.addColorStop(0, "rgba(14,26,54,0)"); v.addColorStop(1, "rgba(14,26,54,.2)");
+    c.fillStyle = v; c.fillRect(0, 0, anchoCss, altoCss);
+  }
+
+  // Caja de cartón. (cx, cy) es su centro en pixeles y s su tamaño
+  function dibCaja(it, cx, cy, s, esc) {
+    const k = (esc === undefined ? 1 : esc) * (1 + (it.pop > 0 ? Math.sin(it.pop * Math.PI) * 0.22 : 0));
+    g.save(); g.translate(cx, cy); g.scale(k, k);
+    const x = -s / 2, y = -s / 2, n = it.cont.length, b = Math.max(1.2, s * 0.06);
+    g.beginPath(); rr(g, x + s * 0.05, y + s * 0.14, s, s, s * 0.14); g.fillStyle = "rgba(14,26,54,.22)"; g.fill();
+    caja2(x, y, s, s, s * 0.14, C.carton2, b);
+    caja2(x, y, s, s * 0.84, s * 0.14, C.carton, b);
+    if (it.sell) {
+      g.fillStyle = C.cinta; g.fillRect(-s * 0.12, y + b / 2, s * 0.24, s * 0.84 - b);
+      g.fillStyle = "rgba(0,0,0,.1)"; g.fillRect(-s * 0.12, y + b / 2, s * 0.03, s * 0.84 - b);
+      caja2(-s * 0.42, -s * 0.24, s * 0.84, s * 0.4, s * 0.08, "#fff", b * 0.7);
+    } else {
+      caja2(x + s * 0.11, y + s * 0.11, s * 0.78, s * 0.62, s * 0.08, "#6f4620");
+      // solapas abiertas
+      g.fillStyle = "#e6b57a"; g.strokeStyle = C.cont; g.lineWidth = b * 0.8; g.lineJoin = "round";
+      g.beginPath(); g.moveTo(x, y + s * 0.1); g.lineTo(x - s * 0.1, y - s * 0.08); g.lineTo(x + s * 0.3, y - s * 0.02); g.lineTo(x + s * 0.3, y + s * 0.1); g.closePath(); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(x + s, y + s * 0.1); g.lineTo(x + s * 1.1, y - s * 0.08); g.lineTo(x + s * 0.7, y - s * 0.02); g.lineTo(x + s * 0.7, y + s * 0.1); g.closePath(); g.fill(); g.stroke();
+    }
+    const r = s * (n >= 3 ? 0.11 : 0.135), paso = s * (n >= 3 ? 0.26 : 0.31), yy = it.sell ? -s * 0.04 : -s * 0.08;
+    for (let i = 0; i < n; i++) dibProd(it.cont[i], (i - (n - 1) / 2) * paso, yy, r);
+    if (it.verif && !it.sell) {
+      g.beginPath(); g.arc(x + s * 0.95, y + s * 0.06, s * 0.19, 0, 6.2832); g.fillStyle = C.verde; g.fill(); g.lineWidth = b * 0.8; g.strokeStyle = C.cont; g.stroke();
+      g.strokeStyle = "#fff"; g.lineWidth = s * 0.07; g.lineCap = "round"; g.lineJoin = "round";
+      g.beginPath(); g.moveTo(x + s * 0.86, y + s * 0.06); g.lineTo(x + s * 0.93, y + s * 0.13); g.lineTo(x + s * 1.04, y - s * 0.01); g.stroke(); g.lineCap = "butt";
+    }
+    g.restore();
+  }
+  // dibuja una caja en su lugar (hx, hy en celdas), con su vuelo de llegada si lo tiene
+  function dibItem(it, hx, hy, s) {
+    let x = hx, y = hy, esc = 1;
+    if (it.an) {
+      const k = suave(it.an.t / T_VUELO);
+      x = it.an.x + (hx - it.an.x) * k; y = it.an.y + (hy - it.an.y) * k - Math.sin(k * Math.PI) * 0.35; esc = 0.85 + 0.15 * k;
+    }
+    dibCaja(it, x * S + S / 2, y * S + S / 2, s, esc);
+  }
+
+  function dibEstacion(e, t) {
+    const px = e.x * S, py = e.y * S, cx = px + S / 2, cy = py + S / 2;
+    const p = e.pulso, ex = 1 + Math.sin(p * Math.PI) * 0.1, ey = 1 - Math.sin(p * Math.PI) * 0.08;
+    g.save(); g.translate(cx, py + S); g.scale(ex, ey); g.translate(-cx, -(py + S));
+    const b = lw(0.03);
+    switch (e.tipo) {
+      case "pared": {
+        const v = (e.x * 3 + e.y * 5) % 4;
+        if (v === 1 && e.y === 0) { // planta
+          bloque(px, py, "#2f447a", "#1c2c58", 0.14);
+          caja2(cx - S * 0.17, py + S * 0.46, S * 0.34, S * 0.24, S * 0.06, "#c7692f", b);
+          g.fillStyle = "#1fa67a"; g.strokeStyle = C.cont; g.lineWidth = b;
+          const hojas = [[-0.16, 0.34, 0.13], [0.16, 0.34, 0.13], [0, 0.24, 0.16], [-0.09, 0.42, 0.1], [0.1, 0.43, 0.1]];
+          for (let i = 0; i < hojas.length; i++) { g.beginPath(); g.arc(cx + hojas[i][0] * S + Math.sin(t * 1.6 + i) * S * 0.008, py + hojas[i][1] * S, hojas[i][2] * S, 0, 6.2832); g.fill(); g.stroke(); }
+          g.fillStyle = "#35c594"; g.beginPath(); g.arc(cx - S * 0.03, py + S * 0.2, S * 0.05, 0, 6.2832); g.fill();
+        } else if (v === 2) { // tambos
+          bloque(px, py, "#2f447a", "#1c2c58", 0.14);
+          for (let i = 0; i < 2; i++) {
+            const bx = cx + (i ? 0.14 : -0.14) * S, by = py + (i ? 0.44 : 0.36) * S;
+            g.beginPath(); g.ellipse(bx, by + S * 0.13, S * 0.14, S * 0.07, 0, 0, 6.2832); g.fillStyle = i ? "#1f4fb0" : "#b22a1a"; g.fill();
+            g.fillRect(bx - S * 0.14, by, S * 0.28, S * 0.13);
+            g.beginPath(); g.ellipse(bx, by, S * 0.14, S * 0.07, 0, 0, 6.2832); g.fillStyle = i ? "#3d7df0" : "#ef4b37"; g.fill(); g.lineWidth = b; g.strokeStyle = C.cont; g.stroke();
+          }
+        } else { // gabinete
+          bloque(px, py, "#34497f", "#1c2c58", 0.2);
+          g.strokeStyle = "rgba(255,255,255,.1)"; g.lineWidth = lw(0.03);
+          g.beginPath(); g.moveTo(px + S * 0.2, py + S * 0.3); g.lineTo(px + S * 0.8, py + S * 0.3); g.moveTo(px + S * 0.2, py + S * 0.5); g.lineTo(px + S * 0.8, py + S * 0.5); g.stroke();
+          g.fillStyle = "rgba(255,255,255,.2)"; g.fillRect(cx - S * 0.07, py + S * 0.66, S * 0.14, S * 0.03);
+        }
+        break; }
+      case "mesa":
+        bloque(px, py, "#e3bf87", "#a9824c", 0.18);
+        g.strokeStyle = "rgba(120,85,40,.3)"; g.lineWidth = lw(0.025);
+        g.beginPath(); g.moveTo(px + S * 0.2, py + S * 0.28); g.lineTo(px + S * 0.8, py + S * 0.28); g.moveTo(px + S * 0.26, py + S * 0.52); g.lineTo(px + S * 0.74, py + S * 0.52); g.stroke();
+        break;
+      case "cajas": {
+        bloque(px, py, "#2f447a", "#16254b", 0.26);
+        for (let i = 0; i < 3; i++) {
+          const yy = py + S * (0.42 - i * 0.12);
+          caja2(px + S * 0.17, yy, S * 0.66, S * 0.17, S * 0.04, C.carton2, b); caja2(px + S * 0.17, yy, S * 0.66, S * 0.12, S * 0.04, i === 2 ? "#e6b57a" : C.carton, b);
+        }
+        texto("CAJAS", cx, py + S * 0.845, S * 0.16, "#fff");
+        break; }
+      case "estante": {
+        bloque(px, py, C.naranja, "#c04f05", 0.18);
+        caja2(px + S * 0.15, py + S * 0.12, S * 0.7, S * 0.58, S * 0.1, "#fff7ea", b);
+        g.globalAlpha = 0.35; dibProd(e.prod, cx - S * 0.17, py + S * 0.3, S * 0.1); dibProd(e.prod, cx + S * 0.17, py + S * 0.3, S * 0.1); g.globalAlpha = 1;
+        dibProd(e.prod, cx, py + S * 0.44 - Math.sin(p * Math.PI) * S * 0.08, S * 0.19);
+        break; }
+      case "escaner": {
+        bloque(px, py, "#34497f", "#0a1226", 0.26);
+        caja2(px + S * 0.14, py + S * 0.11, S * 0.72, S * 0.52, S * 0.08, "#0a1226", b);
+        caja2(px + S * 0.18, py + S * 0.15, S * 0.64, S * 0.44, S * 0.05, "#123a44");
+        if (!e.item) {
+          const yy = py + S * (0.37 + Math.sin(t * 3) * 0.17);
+          g.fillStyle = "rgba(60,255,170,.25)"; g.fillRect(px + S * 0.18, yy - S * 0.05, S * 0.64, S * 0.1);
+          g.fillStyle = "#3cffaa"; g.fillRect(px + S * 0.18, yy - S * 0.015, S * 0.64, S * 0.03);
+        }
+        texto("ESCÁNER", cx, py + S * 0.845, S * 0.15, "#7dffc8");
+        break; }
+      case "selladora": {
+        bloque(px, py, "#c3ccdc", "#6b7690", 0.26);
+        caja2(px + S * 0.14, py + S * 0.11, S * 0.72, S * 0.52, S * 0.08, "#e8ecf3", b * 0.8);
+        if (!e.item) {
+          g.fillStyle = C.cinta; g.fillRect(cx, py + S * 0.3, S * 0.3, S * 0.09);
+          g.beginPath(); g.arc(cx - S * 0.04, py + S * 0.37, S * 0.17, 0, 6.2832); g.fillStyle = C.cinta; g.fill(); g.lineWidth = b; g.strokeStyle = C.cont; g.stroke();
+          g.beginPath(); g.arc(cx - S * 0.04, py + S * 0.37, S * 0.07, 0, 6.2832); g.fillStyle = C.naranja; g.fill(); g.stroke();
+        }
+        texto("SELLAR", cx, py + S * 0.845, S * 0.16, "#fff");
+        break; }
+      case "basura": {
+        bloque(px, py, "#2f447a", "#16254b", 0.26);
+        caja2(px + S * 0.27, py + S * 0.24, S * 0.46, S * 0.42, S * 0.07, "#8d98ad", b);
+        caja2(px + S * 0.21, py + S * 0.15, S * 0.58, S * 0.12, S * 0.05, "#c3ccdc", b);
+        g.strokeStyle = "rgba(14,26,54,.35)"; g.lineWidth = lw(0.03); g.beginPath();
+        for (let i = -1; i <= 1; i++) { g.moveTo(cx + i * S * 0.11, py + S * 0.33); g.lineTo(cx + i * S * 0.11, py + S * 0.58); }
+        g.stroke();
+        texto("BASURA", cx, py + S * 0.845, S * 0.15, "#aab4c8");
+        break; }
+      case "muelle": {
+        const cam = G.camion, off = suave(cam.anim) * S * 1.15 - Math.sin(cam.bote * Math.PI) * S * 0.06;
+        bloque(px, py, C.amar, "#b8891c", 0.1);
+        g.save(); g.beginPath(); rr(g, px + S * 0.06, py + S * 0.06, S * 0.88, S * 0.88, S * 0.13); g.clip();
+        g.fillStyle = "#3b4870"; g.fillRect(px, py, S, S);
+        g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = lw(0.05); g.setLineDash([S * 0.14, S * 0.12]);
+        g.beginPath(); g.moveTo(cx, py); g.lineTo(cx, py + S); g.stroke(); g.setLineDash([]);
+        g.translate(0, off);
+        caja2(px + S * 0.13, py + S * 0.1, S * 0.74, S * 0.86, S * 0.09, "#fff", b);
+        caja2(px + S * 0.21, py + S * 0.18, S * 0.58, S * 0.46, S * 0.05, "#16254b", b * 0.8);
+        g.fillStyle = "#e9edf5"; g.strokeStyle = C.cont; g.lineWidth = b * 0.8;
+        g.fillRect(px + S * 0.13, py + S * 0.18, S * 0.07, S * 0.46); g.strokeRect(px + S * 0.13, py + S * 0.18, S * 0.07, S * 0.46);
+        g.fillRect(px + S * 0.8, py + S * 0.18, S * 0.07, S * 0.46); g.strokeRect(px + S * 0.8, py + S * 0.18, S * 0.07, S * 0.46);
+        g.fillStyle = C.naranja; g.fillRect(px + S * 0.14, py + S * 0.7, S * 0.72, S * 0.07);
+        g.fillStyle = C.rojo; g.fillRect(px + S * 0.18, py + S * 0.81, S * 0.12, S * 0.06); g.fillRect(px + S * 0.7, py + S * 0.81, S * 0.12, S * 0.06);
+        g.restore();
+        if (cam.presente) {
+          if (cam.anim < 0.3) texto("CAMIÓN", cx, py + S * 0.41, S * 0.14, "#fff");
+        } else if (cam.anim > 0.6) {
+          texto("EN RUTA", cx, py + S * 0.3, S * 0.14, "#fff");
+          texto(Math.ceil(cam.reloj) + "s", cx, py + S * 0.6, S * 0.3, C.amar);
+        }
+        if (G.def.camion && cam.presente && cam.reloj < 4) anillo(px + S * 0.84, py + S * 0.16, S * 0.13, cam.reloj / 4, Math.floor(t * 6) % 2 ? C.rojo : C.naranja);
+        break; }
+    }
+    if (e.item) {
+      if (e.tipo === "escaner" && e.item.verif) {
+        g.beginPath(); g.arc(cx, cy - S * 0.12, S * (0.42 + Math.sin(t * 7) * 0.04), 0, 6.2832); g.fillStyle = "rgba(60,255,170,.28)"; g.fill();
+      }
+      dibItem(e.item, e.x, e.y - 0.12, S * 0.56);
+      if (e.tipo === "escaner" && !e.item.verif) {
+        const yy = cy - S * 0.12 + Math.sin(t * 9) * S * 0.25;
+        g.fillStyle = "rgba(60,255,170,.3)"; g.fillRect(cx - S * 0.36, yy - S * 0.05, S * 0.72, S * 0.1);
+        g.fillStyle = "#3cffaa"; g.fillRect(cx - S * 0.36, yy - S * 0.015, S * 0.72, S * 0.035);
+        anillo(px + S * 0.84, py + S * 0.16, S * 0.14, e.item.scan / T_ESCANER, C.verde);
+      } else if (e.tipo === "selladora" && !e.item.sell) {
+        anillo(px + S * 0.84, py + S * 0.16, S * 0.14, e.item.sello / T_SELLO, C.naranja);
+      }
+    }
+    g.restore();
+  }
+
+  function dibJugador(t) {
+    const j = G.jug, cx = j.x * S + S / 2, pies = j.y * S + S * 0.82;
+    const bote = j.mov ? Math.abs(Math.sin(j.paso)) * S * 0.075 : Math.sin(t * 2.6) * S * 0.012;
+    const sq = j.squash > 0 ? Math.sin(j.squash / 0.18 * Math.PI) * 0.14 : j.squash < 0 ? Math.sin(t * 60) * 0.05 : 0;
+    const lleva = !!j.item, arriba = j.fy < 0, trabaja = j.trab && j.trab.item && !j.trab.item.sell;
+    const b = lw(0.035);
+    g.beginPath(); g.ellipse(cx, pies, Math.max(1, S * 0.27 - bote * 0.6), S * 0.085, 0, 0, 6.2832); g.fillStyle = "rgba(14,26,54,.25)"; g.fill();
+    if (j.inmune > 0 && j.atur <= 0 && Math.floor(t * 12) % 2) g.globalAlpha = 0.5;
+    g.save(); g.translate(cx, pies); g.scale(1 + sq, 1 - sq); g.translate(0, -bote);
+    if (j.atur > 0) g.rotate(Math.sin(t * 18) * 0.12);
+    // pies
+    const pie = j.mov ? Math.sin(j.paso) * S * 0.08 : 0;
+    g.fillStyle = C.navy;
+    g.beginPath(); g.ellipse(-S * 0.11, -S * 0.03 + Math.min(0, pie), S * 0.085, S * 0.06, 0, 0, 6.2832); g.fill();
+    g.beginPath(); g.ellipse(S * 0.11, -S * 0.03 + Math.min(0, -pie), S * 0.085, S * 0.06, 0, 0, 6.2832); g.fill();
+    // cuerpo con chaleco
+    g.beginPath(); rr(g, -S * 0.24, -S * 0.44, S * 0.48, S * 0.38, S * 0.16); g.fillStyle = C.naranja; g.fill(); g.lineWidth = b; g.strokeStyle = C.cont; g.stroke();
+    g.fillStyle = "#ffe0b0"; g.fillRect(-S * 0.225, -S * 0.27, S * 0.45, S * 0.055);
+    if (arriba) { g.strokeStyle = "#ffe0b0"; g.lineWidth = lw(0.045); g.beginPath(); g.moveTo(-S * 0.13, -S * 0.42); g.lineTo(S * 0.13, -S * 0.1); g.moveTo(S * 0.13, -S * 0.42); g.lineTo(-S * 0.13, -S * 0.1); g.stroke(); }
+    else { g.fillStyle = C.navy; g.fillRect(-S * 0.025, -S * 0.42, S * 0.05, S * 0.34); }
+    // manos
+    g.fillStyle = C.crema; g.strokeStyle = C.cont; g.lineWidth = b;
+    let mx = S * 0.28, my1 = -S * 0.24, my2 = -S * 0.24;
+    if (lleva) { mx = S * 0.25; my1 = my2 = -S * 0.78; }
+    else if (trabaja) { my1 = -S * 0.36 + Math.sin(t * 24) * S * 0.07; my2 = -S * 0.36 - Math.sin(t * 24) * S * 0.07; mx = S * 0.2; }
+    else if (j.feliz > 0) { my1 = my2 = -S * 0.62 + Math.sin(t * 20) * S * 0.04; mx = S * 0.3; }
+    else if (j.mov) { my1 += Math.sin(j.paso) * S * 0.07; my2 -= Math.sin(j.paso) * S * 0.07; }
+    g.beginPath(); g.arc(-mx, my1, S * 0.075, 0, 6.2832); g.fill(); g.stroke();
+    g.beginPath(); g.arc(mx, my2, S * 0.075, 0, 6.2832); g.fill(); g.stroke();
+    // cabeza y casco
+    const hy = -S * 0.58;
+    g.beginPath(); g.arc(0, hy, S * 0.175, 0, 6.2832); g.fillStyle = C.crema; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, hy - S * 0.03, S * 0.185, Math.PI, 0); g.closePath(); g.fillStyle = C.amar; g.fill(); g.stroke();
+    if (!arriba) {
+      g.beginPath(); rr(g, -S * 0.22 + j.fx * S * 0.04, hy - S * 0.06, S * 0.44, S * 0.055, S * 0.027); g.fillStyle = C.amar; g.fill(); g.stroke();
+      const ox = j.fx * S * 0.07, oy = hy + S * 0.04;
+      g.fillStyle = C.navy; g.strokeStyle = C.navy; g.lineWidth = lw(0.025); g.lineCap = "round";
+      if (j.atur > 0) {
+        for (let i = -1; i <= 1; i += 2) { const ex = ox + i * S * 0.065; g.beginPath(); g.moveTo(ex - S * 0.025, oy - S * 0.025); g.lineTo(ex + S * 0.025, oy + S * 0.025); g.moveTo(ex + S * 0.025, oy - S * 0.025); g.lineTo(ex - S * 0.025, oy + S * 0.025); g.stroke(); }
+      } else if (j.feliz > 0) {
+        for (let i = -1; i <= 1; i += 2) { g.beginPath(); g.arc(ox + i * S * 0.065, oy + S * 0.01, S * 0.03, Math.PI, 0); g.stroke(); }
+        g.beginPath(); g.arc(ox, oy + S * 0.055, S * 0.045, 0.1, Math.PI - 0.1); g.stroke();
+      } else if ((t % 3.4) < 0.12) {
+        for (let i = -1; i <= 1; i += 2) { g.beginPath(); g.moveTo(ox + i * S * 0.065 - S * 0.025, oy); g.lineTo(ox + i * S * 0.065 + S * 0.025, oy); g.stroke(); }
+      } else {
+        g.beginPath(); g.arc(ox - S * 0.065, oy, S * 0.026, 0, 6.2832); g.arc(ox + S * 0.065, oy, S * 0.026, 0, 6.2832); g.fill();
+      }
+      g.lineCap = "butt";
+    }
+    g.restore();
+    g.globalAlpha = 1;
+    if (j.item) dibItem(j.item, j.x, j.y - 0.66 - bote / S, S * 0.5);
+    if (j.atur > 0) for (let i = 0; i < 3; i++) {
+      const a = t * 7 + i * 2.094;
+      texto("★", cx + Math.cos(a) * S * 0.3, pies - S * 0.86 + Math.sin(a) * S * 0.09, S * 0.2, C.amar, C.cont);
+    }
+  }
+
+  function dibMonta(t) {
+    const m = G.monta, cx = m.x * S + S / 2, cy = m.y * S + S / 2, d = m.dir, b = lw(0.03);
+    const tiembla = m.pausa > 0 ? 0 : Math.sin(t * 30) * S * 0.008;
+    g.beginPath(); g.ellipse(cx, cy + S * 0.36, S * 0.42, S * 0.09, 0, 0, 6.2832); g.fillStyle = "rgba(14,26,54,.25)"; g.fill();
+    g.save(); g.translate(cx, cy + tiembla); g.scale(d, 1);
+    g.fillStyle = "#59657f"; g.strokeStyle = C.cont; g.lineWidth = b;
+    g.fillRect(S * 0.26, -S * 0.34, S * 0.06, S * 0.58); g.strokeRect(S * 0.26, -S * 0.34, S * 0.06, S * 0.58);
+    g.fillRect(S * 0.3, S * 0.16, S * 0.2, S * 0.05); g.strokeRect(S * 0.3, S * 0.16, S * 0.2, S * 0.05);
+    caja2(-S * 0.32, -S * 0.14, S * 0.6, S * 0.38, S * 0.1, C.amar, b);
+    caja2(-S * 0.2, -S * 0.34, S * 0.36, S * 0.26, S * 0.06, "rgba(191,227,255,.7)", b);
+    g.fillStyle = C.naranja; g.beginPath(); g.arc(-S * 0.02, -S * 0.2, S * 0.07, 0, 6.2832); g.fill(); g.stroke();
+    g.fillStyle = C.navy; g.fillRect(-S * 0.32, S * 0.06, S * 0.6, S * 0.05);
+    g.beginPath(); g.arc(-S * 0.18, S * 0.26, S * 0.1, 0, 6.2832); g.arc(S * 0.16, S * 0.26, S * 0.1, 0, 6.2832); g.fillStyle = C.navy; g.fill();
+    g.beginPath(); g.arc(-S * 0.18, S * 0.26, S * 0.04, 0, 6.2832); g.arc(S * 0.16, S * 0.26, S * 0.04, 0, 6.2832); g.fillStyle = "#aab4c8"; g.fill();
+    g.restore();
+    const luz = Math.floor(t * 5) % 2;
+    if (luz) { g.beginPath(); g.arc(cx, cy - S * 0.4, S * 0.16, 0, 6.2832); g.fillStyle = "rgba(229,65,45,.3)"; g.fill(); }
+    g.beginPath(); g.arc(cx, cy - S * 0.4, S * 0.06, 0, 6.2832); g.fillStyle = luz ? C.rojo : "#ffb0a4"; g.fill(); g.lineWidth = b; g.strokeStyle = C.cont; g.stroke();
+  }
+
+  function esquinas(x, y, t, color) {
+    const k = S * 0.04 + Math.sin(t * 7) * S * 0.035, l = S * 0.24, a = x * S + k, b = y * S + k, c = (x + 1) * S - k, d = (y + 1) * S - k;
+    g.strokeStyle = C.cont; g.lineWidth = lw(0.12); g.lineCap = "round"; g.lineJoin = "round";
+    for (let pasada = 0; pasada < 2; pasada++) {
+      g.beginPath();
+      g.moveTo(a, b + l); g.lineTo(a, b); g.lineTo(a + l, b); g.moveTo(c - l, b); g.lineTo(c, b); g.lineTo(c, b + l);
+      g.moveTo(c, d - l); g.lineTo(c, d); g.lineTo(c - l, d); g.moveTo(a + l, d); g.lineTo(a, d); g.lineTo(a, d - l);
+      g.stroke(); g.strokeStyle = color; g.lineWidth = lw(0.065);
+    }
+    g.lineCap = "butt";
+  }
+
+  function dibujar() {
+    if (!G || !anchoCss) return;
+    const t = G.reloj, j = G.jug;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, anchoCss, altoCss);
+    g.save();
+    if (G.sacude > 0) g.translate((Math.random() - 0.5) * S * 0.18, (Math.random() - 0.5) * S * 0.18);
+    if (fondoCv) g.drawImage(fondoCv, 0, 0, anchoCss, altoCss);
+    // ruta punteada
+    if (j.ruta.length) {
+      g.strokeStyle = "rgba(255,122,26,.55)"; g.lineWidth = S * 0.09; g.lineCap = "round"; g.lineJoin = "round"; g.setLineDash([S * 0.01, S * 0.22]); g.lineDashOffset = -t * S * 0.9;
+      g.beginPath(); g.moveTo(j.x * S + S / 2, j.y * S + S * 0.78);
+      for (let i = 0; i < j.ruta.length; i++) g.lineTo(j.ruta[i][0] * S + S / 2, j.ruta[i][1] * S + S * 0.78);
+      g.stroke(); g.setLineDash([]); g.lineDashOffset = 0; g.lineCap = "butt";
+    }
+    if (G.toque) {
+      const k = G.toque.t / 0.45;
+      g.beginPath(); g.arc(G.toque.x * S + S / 2, G.toque.y * S + S / 2, S * (0.12 + suave(k) * 0.42), 0, 6.2832);
+      g.strokeStyle = "rgba(255,122,26," + Math.max(0, 1 - k).toFixed(2) + ")"; g.lineWidth = S * 0.07 * Math.max(0, 1 - k) + 1; g.stroke();
+    }
+    for (let i = 0; i < G.polvos.length; i++) {
+      const p = G.polvos[i], k = p.t / 0.45;
+      g.beginPath(); g.arc(p.x * S + S / 2, p.y * S + S / 2, S * (0.05 + k * 0.08), 0, 6.2832); g.fillStyle = "rgba(150,160,185," + Math.max(0, 0.5 * (1 - k)).toFixed(2) + ")"; g.fill();
+    }
+    // estaciones y personajes por filas, para que se tapen bien
+    const m = G.monta, filaJ = Math.min(G.H - 1, Math.max(0, Math.round(j.y)));
+    for (let y = 0; y < G.H; y++) {
+      for (let x = 0; x < G.W; x++) { const e = G.celdas[y][x]; if (e) dibEstacion(e, t); }
+      if (m && m.y === y && m.y <= j.y) dibMonta(t);
+      if (filaJ === y) dibJugador(t);
+      if (m && m.y === y && m.y > j.y) dibMonta(t);
+    }
+    // marco del objetivo y flecha de ayuda
+    const obj = j.obj || j.trab;
+    if (obj) esquinas(obj.x, obj.y, t, C.naranja);
+    if (nivelIdx < 2 && G.previa <= 0 && !G.fin && !obj) {
+      const s = guia()[1];
+      if (s) {
+        const d = s.y === 0 ? -1 : 1;
+        const ax = s.x * S + S / 2, ay = s.y * S + S * (d < 0 ? 1.12 : -0.12) + Math.sin(t * 6) * S * 0.07 * d;
+        g.beginPath(); g.moveTo(ax, ay + d * S * 0.16); g.lineTo(ax - S * 0.17, ay - d * S * 0.08); g.lineTo(ax + S * 0.17, ay - d * S * 0.08); g.closePath();
+        g.fillStyle = C.naranja; g.fill(); g.lineWidth = lw(0.04); g.strokeStyle = "#fff"; g.lineJoin = "round"; g.stroke();
+      }
+    }
+    // cosas que vuelan
+    for (let i = 0; i < G.vuelos.length; i++) {
+      const v = G.vuelos[i];
+      if (v.tipo === "prod") {
+        const k = suave(v.t / 0.2), x = v.x + (manoX() - v.x) * k, y = v.y + (manoY() - v.y) * k - Math.sin(k * Math.PI) * 0.3;
+        dibProd(v.prod, x * S + S / 2, y * S + S / 2, S * 0.13 * (1.4 - 0.4 * k));
+      } else {
+        const k = suave(v.t / 0.32), x = v.x + (v.x1 - v.x) * k, y = v.y + (v.y1 - v.y) * k - Math.sin(k * Math.PI) * 0.3;
+        g.globalAlpha = Math.max(0, 1 - k * k); dibCaja(v.item, x * S + S / 2, y * S + S / 2, S * 0.5, 1 - 0.6 * k); g.globalAlpha = 1;
+      }
+    }
+    for (let i = 0; i < G.parts.length; i++) {
+      const p = G.parts[i];
+      g.save(); g.translate(p.x * S + S / 2, p.y * S + S / 2); g.rotate(p.r + p.t * 9); g.globalAlpha = Math.max(0, 1 - p.t / p.d);
+      g.fillStyle = p.c; g.fillRect(-S * 0.06, -S * 0.035, S * 0.12, S * 0.07); g.restore();
+    }
+    for (let i = 0; i < G.fx.length; i++) {
+      const f = G.fx[i], k = Math.max(0.05, rebote(Math.min(1, f.t / 0.25)));
+      const x = Math.max(S * 0.8, Math.min(anchoCss - S * 0.8, f.x * S + S / 2)), y = Math.max(S * 0.35, f.y * S + S / 2 - f.t * S * 0.55);
+      g.globalAlpha = Math.max(0, Math.min(1, (1.3 - f.t) * 3));
+      texto(f.txt, x, y, S * 0.36 * k, f.color, "#fff"); g.globalAlpha = 1;
+    }
+    g.restore();
+    // cuenta regresiva y cierre
+    if (G.previa > 0) {
+      g.fillStyle = "rgba(8,14,32,.45)"; g.fillRect(0, 0, anchoCss, altoCss);
+      const q = G.previa - 0.4, n = Math.ceil(q);
+      if (n >= 1) {
+        const k = Math.max(0.05, rebote(Math.min(1, (n - q) / 0.3)));
+        texto(String(n), anchoCss / 2, altoCss / 2, S * 2.2 * k, "#fff", C.naranja);
+      } else texto("¡A despachar!", anchoCss / 2, altoCss / 2, S * 0.74 * Math.max(0.05, rebote(Math.min(1, -q / 0.25))), C.amar, C.cont);
+    } else if (G.fin) {
+      g.fillStyle = "rgba(8,14,32,.5)"; g.fillRect(0, 0, anchoCss, altoCss);
+      const k = Math.max(0.05, rebote(Math.min(1, (1.5 - G.cierre) / 0.4)));
+      g.save(); g.translate(anchoCss / 2, altoCss / 2); g.rotate(-0.06);
+      caja2(-S * 2.6 * k, -S * 0.62 * k, S * 5.2 * k, S * 1.24 * k, S * 0.3, C.naranja, lw(0.06));
+      texto("¡TIEMPO!", 0, S * 0.03, S * 0.86 * k, "#fff", C.cont);
+      g.restore();
+    }
+  }
+
+  // ---------- interfaz fuera del lienzo ----------
+  const ICONO_PISTA = '<svg viewBox="-16 -20 32 34"><circle cx="0" cy="-3" r="12" fill="#f8e3c5" stroke="#0e1a36" stroke-width="2"/><path d="M-12.5-5a12.5 12.5 0 0 1 25 0z" fill="#f2b632" stroke="#0e1a36" stroke-width="2" stroke-linejoin="round"/><rect x="-14" y="-7" width="29" height="4" rx="2" fill="#f2b632" stroke="#0e1a36" stroke-width="2"/><circle cx="-3.5" cy="1" r="1.7" fill="#0e1a36"/><circle cx="5" cy="1" r="1.7" fill="#0e1a36"/><path d="M-2 5.5q3 2.5 6 0" fill="none" stroke="#0e1a36" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+  // Qué conviene hacer ahora: [texto, estación sugerida]
+  function guia() {
+    const it = G.jug.item, d = G.def;
+    if (!it) {
+      const sc = E("escaner");
+      if (sc && sc.item && sc.item.verif) return ["La caja del ESCÁNER ya está lista: recógela.", sc];
+      if (!G.pedidos.length) return ["Espera el siguiente pedido…", null];
+      return ["Toca CAJAS para tomar una caja vacía.", E("cajas")];
+    }
+    if (it.sell) return G.camion.presente ? ["¡Lista! Entrégala en el CAMIÓN.", E("muelle")] : ["El camión anda en ruta: déjala en una mesa o espera.", null];
+    // ¿a qué pedido le sirve lo que ya trae la caja?
+    let falta = null;
+    for (let i = 0; i < G.pedidos.length && !falta; i++) {
+      const need = G.pedidos[i].cont.slice(); let ok = true;
+      for (let k = 0; k < it.cont.length; k++) { const p = need.indexOf(it.cont[k]); if (p < 0) { ok = false; break; } need.splice(p, 1); }
+      if (ok) falta = need;
+    }
+    if (!falta) return G.pedidos.length ? ["Esa caja no coincide con ningún pedido: tírala a la BASURA.", E("basura")] : ["Espera el siguiente pedido…", null];
+    if (falta.length && !it.verif) {
+      let est = null;
+      for (let i = 0; i < G.est.length; i++) if (G.est[i].tipo === "estante" && G.est[i].prod === falta[0]) est = G.est[i];
+      return [it.cont.length ? "Falta el producto " + PROD[falta[0]].nombre + ": toca su estante." : "Toca el estante del producto " + PROD[falta[0]].nombre + ".", est];
+    }
+    if (d.escaner && !it.verif) return ["Caja completa. Llévala al ESCÁNER.", E("escaner")];
+    return [d.escaner ? "Escaneada. Ahora llévala a SELLAR." : "Caja completa. Llévala a SELLAR.", E("selladora")];
+  }
+
+  function sincronizarPedidos() {
+    const cont = $("pedidos"), vivos = {};
+    for (let i = 0; i < G.pedidos.length; i++) {
+      const p = G.pedidos[i]; vivos[p.id] = true;
+      let el = tkEls.get(p.id);
+      if (!el) {
+        el = document.createElement("div"); el.className = "tk";
+        el.innerHTML = '<span class="tkn">#' + p.id + '</span><div class="chips">' + p.cont.map(svgProd).join("") + "</div><i><b></b></i><em></em>";
+        cont.appendChild(el); tkEls.set(p.id, el); el._b = el.querySelector("b");
+      }
+      const f = Math.max(0, p.t / p.max);
+      el._b.style.transform = "scaleX(" + f.toFixed(3) + ")";
+      el.classList.toggle("medio", f < 0.55 && f >= 0.28);
+      el.classList.toggle("urge", f < 0.28);
+    }
+    tkEls.forEach(function (el, id) {
+      if (vivos[id]) return;
+      tkEls.delete(id);
+      const ok = G.salidas[id] === "ok";
+      el.classList.remove("urge"); el.classList.add("sale", ok ? "ok" : "mal");
+      el.querySelector("em").textContent = ok ? "✓" : "✕";
+      setTimeout(function () { el.remove(); }, 430);
+    });
+    $("sinped").hidden = cont.children.length > 1;
+  }
+
+  function pintarHud() {
+    const seg = Math.ceil(G.restante), mm = Math.floor(seg / 60), ss = seg % 60;
+    $("tiempo").textContent = mm + ":" + (ss < 10 ? "0" : "") + ss;
+    $("tBarra").style.transform = "scaleX(" + Math.max(0, G.restante / G.def.tiempo).toFixed(3) + ")";
+    $("tiempoC").classList.toggle("poco", seg <= 10 && !G.fin);
+    if ($("pts").textContent !== String(G.puntos)) $("pts").textContent = G.puntos;
+    const metas = G.def.metas, marcas = $("estr").children;
+    for (let i = 0; i < 3; i++) marcas[i].classList.toggle("ok", G.puntos >= metas[i]);
+    if (G.racha !== rachaVista) {
+      rachaVista = G.racha; const r = $("racha");
+      r.hidden = true;
+      if (G.racha >= 2) { r.textContent = "Racha ×" + G.racha; void r.offsetWidth; r.hidden = false; }
+    }
+    sincronizarPedidos();
+    let txt, cls = "";
+    if (aviso && performance.now() < avisoHasta) { txt = aviso; cls = "aviso"; }
+    else if (G.previa > 0) txt = "¡Prepárate!";
+    else if (G.fin) txt = "¡Se acabó el turno!";
+    else txt = guia()[0];
+    if (txt !== pistaTxt) {
+      pistaTxt = txt; $("pistaTxt").textContent = txt;
+      const p = $("pista"); p.className = ""; void p.offsetWidth; p.className = cls || "cambio";
+    }
+  }
+
+  // ---------- pantallas ----------
+  const estrellasHtml = function (n) { let h = ""; for (let i = 0; i < 3; i++) h += i < n ? "<b>★</b>" : "★"; return h; };
+  function mostrar(id) { $("menu").hidden = id !== "menu"; $("juego").hidden = id !== "juego"; }
+  // clase: "" tarjeta de papel · "orden" · "pausa" (tira rasgada) · "result" (rayos)
+  function tarjeta(html, clase) {
+    quitarConfeti();
+    const c = $("capa"), t = $("tarjeta");
+    c.hidden = true; c.className = clase || ""; t.className = (clase || "").split(" ")[0];
+    t.style.clipPath = ""; t.style.webkitClipPath = "";
+    t.innerHTML = html; void c.offsetWidth; c.hidden = false; t.scrollTop = 0;
+    if (clase === "pausa") {
+      const izq = [], der = [], n = 28;
+      for (let i = 0; i <= n; i++) {
+        const y = (i / n * 100).toFixed(1) + "%";
+        izq.push((Math.random() * 4).toFixed(1) + "% " + y); der.push((100 - Math.random() * 4).toFixed(1) + "% " + y);
+      }
+      const forma = "polygon(" + izq.concat(der.reverse()).join(",") + ")";
+      t.style.clipPath = forma; t.style.webkitClipPath = forma;
+    }
+  }
+  function cerrarTarjeta() { $("capa").hidden = true; quitarConfeti(); }
+  function quitarConfeti() { $("capa").querySelectorAll(".confeti").forEach(function (c) { c.remove(); }); }
+
+  const INS = {
+    cajas: ['<svg viewBox="0 0 28 28"><rect x="5" y="8" width="18" height="15" rx="2" fill="#d39a5b" stroke="#fff" stroke-width="1.500"/><rect x="12" y="8" width="4" height="15" fill="#f6e9cf"/></svg>', "Cajas"],
+    surtir: ['<svg viewBox="0 0 28 28"><circle cx="9" cy="14" r="6" fill="#ef4b37" stroke="#fff" stroke-width="1.500"/><rect x="15" y="8" width="11" height="11" rx="2.500" fill="#3d7df0" stroke="#fff" stroke-width="1.500"/></svg>', "Surtir"],
+    escaner: ['<svg viewBox="0 0 28 28"><rect x="4" y="6" width="20" height="16" rx="3" fill="#123a44" stroke="#fff" stroke-width="1.500"/><path d="M6 14h16" stroke="#3cffaa" stroke-width="2.500"/></svg>', "Escáner"],
+    sellar: ['<svg viewBox="0 0 28 28"><circle cx="13" cy="14" r="8" fill="#f6e9cf" stroke="#fff" stroke-width="1.500"/><circle cx="13" cy="14" r="3" fill="#ff7a1a"/><path d="M20 9h6v5h-5" fill="#f6e9cf"/></svg>', "Sellar"],
+    camion: ['<svg viewBox="0 0 28 28"><rect x="2" y="8" width="15" height="11" rx="2" fill="#fff"/><path d="M17 11h5l4 4v4h-9z" fill="#ff7a1a"/><circle cx="8" cy="21" r="3" fill="#aab4c8"/><circle cx="21" cy="21" r="3" fill="#aab4c8"/></svg>', "Camión"],
+    ruta: ['<svg viewBox="0 0 28 28"><path d="M5 10h16l-4-4M23 18H7l4 4" fill="none" stroke="#ffd21f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>', "En ruta"],
+    monta: ['<svg viewBox="0 0 28 28"><path d="M14 4 26 24H2z" fill="#f2b632" stroke="#fff" stroke-width="1.500" stroke-linejoin="round"/><path d="M14 11v7M14 21.300v.200" stroke="#0e1a36" stroke-width="2.600" stroke-linecap="round"/></svg>', "Monta&shy;cargas"],
+  };
+  // estaciones de cada nivel; el asterisco marca lo nuevo
+  const INS_NIVEL = [
+    ["cajas", "surtir", "sellar", "camion"], ["cajas", "surtir*", "sellar", "camion"], ["cajas", "surtir", "escaner*", "sellar", "camion"],
+    ["cajas", "surtir", "escaner", "sellar", "ruta*"], ["surtir", "escaner", "sellar", "ruta", "monta*"],
+  ];
+  const CANDADO = '<svg viewBox="0 0 28 28"><rect x="6" y="12" width="16" height="12" rx="3" fill="#a59c88"/><path d="M9.500 12V9a4.500 4.500 0 0 1 9 0v3" fill="none" stroke="#a59c88" stroke-width="2.500"/></svg>';
+  const NOTAS = ["—", "C", "B", "A"];
+  let sigNivel = 0;
+
+  function pintarMenu() {
+    const datos = leer(), ganado = todoGanado(datos);
+    let sig = -1;
+    for (let i = 0; i < NIVELES.length; i++) if (abierto(datos, i) && estrellasDe(datos, i) < 1) { sig = i; break; }
+    sigNivel = sig >= 0 ? sig : 0;
+    $("niveles").innerHTML = NIVELES.map(function (n, i) {
+      const ab = abierto(datos, i), d = datos[n.id], e = d ? d.e : 0;
+      let fin;
+      if (!ab) fin = '<span class="ir">' + CANDADO + "</span>";
+      else if (i === sig) fin = '<span class="ir">Jugar ▸</span>';
+      else if (d) fin = '<span class="nota n' + e + '">' + NOTAS[e] + '</span><span class="p">' + d.p + "</span>";
+      else fin = '<span class="ir">—</span>';
+      return '<button class="fila' + (ab ? "" : " cerrado") + (i === sig ? " sig" : "") + '" data-nivel="' + i + '"><span class="chk">' + (e >= 1 ? "✓" : "") + "</span>" +
+        '<span class="nom">' + (i + 1) + ". " + n.nombre + '</span><span class="guia"></span>' + fin + "</button>";
+    }).join("");
+    $("premioT").textContent = ganado ? "¡Premio desbloqueado!" : "Gana un premio";
+    $("premioS").textContent = ganado ? "Toca aquí y enseña la pantalla en el stand de Los chispitas."
+      : "Supera los 5 turnos y reclámalo en el stand de Los chispitas.";
+    $("bJugar").textContent = sig > 0 ? "Seguir" : "Jugar";
+    $("bSonM").textContent = mudo ? "Sin sonido" : "Sonido";
+    $("heroe").innerHTML = `<svg viewBox="0 0 340 116">
+      <path d="M170 0v10" stroke="#59657f" stroke-width="3"/><path d="M158 10h24l6 9h-36z" fill="#f2b632" stroke="#0e1a36" stroke-width="2.500" stroke-linejoin="round"/><path d="M152 19 96 116h148L188 19z" fill="rgba(255,225,120,.13)"/>
+      <path d="M8 34h84M248 34h84" stroke="#34497f" stroke-width="5" stroke-linecap="round"/>
+      ${gCaja(26, 22, 0.8, "", "")}${gCaja(54, 20, 0.95, "", "")}${gCaja(286, 20, 0.95, "", "")}${gCaja(316, 22, 0.8, "", "")}
+      <path d="M0 106h340" stroke="#34497f" stroke-width="4"/>
+      ${gCaja(40, 92, 1.25, "", "")}${gCaja(76, 96, 0.95, "", "")}${gCaja(54, 66, 0.9, "a-rebota", "animation-delay:.25s")}
+      ${gCaja(296, 92, 1.25, "", "")}${gCaja(262, 96, 0.95, "", "")}${gCaja(284, 66, 0.9, "a-rebota", "animation-delay:.5s")}
+      ${gObrero(170, 76, 1.05, "a-rebota")}
+      <g transform="translate(170 46)"><g class="a-rebota">${gCaja(0, 0, 0.95, "", "")}</g></g></svg>`;
+  }
+  function irMenu() { detener(); G = null; cerrarTarjeta(); pintarMenu(); mostrar("menu"); }
+
+  const PASOS = {
+    cajas: ["1", "Toca <b>CAJAS</b> para tomar una caja vacía."],
+    surtir: ["2", "Con la caja en mano, toca el <b>estante</b> de cada producto del pedido."],
+    escaner: ["✓", "Deja la caja en el <b>ESCÁNER</b>. Trabaja solo: mientras, adelanta otra caja."],
+    sellar: ["3", "Llévala a <b>SELLAR</b> y espera a que termine."],
+    camion: ["4", "Entrégala en el <b>CAMIÓN</b> antes de que se acabe la barra del pedido."],
+    mesas: ["T", "Las <b>mesas</b> sirven para dejar una caja y tomar otra."],
+    ruta: ["⇄", "El <b>camión sale a ruta</b> y regresa: ten cajas listas para cuando llegue."],
+    monta: ["!", "El <b>montacargas</b> cruza el pasillo amarillo. Si te golpea, pierdes tiempo."],
+    tres: ["3×", "Los pedidos traen hasta <b>3 productos</b> y hay 4 tipos."],
+  };
+  const INSTR = [
+    [["cajas"], ["surtir"], ["sellar"], ["camion"]],
+    [["surtir", 1, "Ahora hay pedidos con <b>2 productos</b>: toca dos estantes antes de sellar."], ["mesas", 1], ["camion"]],
+    [["escaner", 1], ["sellar", 0, "Solo se puede <b>SELLAR</b> una caja ya escaneada."], ["camion"]],
+    [["ruta", 1], ["tres", 1], ["mesas"]],
+    [["monta", 1], ["ruta"], ["tres", 0, "Todos los pedidos traen <b>2 o 3 productos</b>."]],
+  ];
+
+  function prepararNivel(i) {
+    detener();
+    nivelIdx = i; G = nuevaPartida(i);
+    pistaTxt = null; aviso = ""; rachaVista = 0; $("racha").hidden = true;
+    tkEls.clear();
+    $("pedidos").querySelectorAll(".tk").forEach(function (el) { el.remove(); });
+    $("nomNivel").textContent = "TURNO " + (i + 1) + " DE " + NIVELES.length;
+    mostrar("juego"); ajustar(); pintarHud(); dibujar();
+    const metas = G.def.metas;
+    const pasos = INSTR[i].map(function (p) {
+      const base = PASOS[p[0]];
+      return '<div class="paso' + (p[1] ? " nuevo" : "") + '"><span class="ic">' + base[0] + "</span><span>" + (p[2] || base[1]) + "</span></div>";
+    }).join("");
+    const ins = INS_NIVEL[i].map(function (k) {
+      const nuevo = k.charAt(k.length - 1) === "*", d = INS[nuevo ? k.slice(0, -1) : k];
+      return '<div class="in' + (nuevo ? " nuevo" : "") + '"><span>' + d[0] + "</span>" + d[1] + "</div>";
+    }).join("");
+    tarjeta('<div class="marco"><div class="sup"><i>Turno ' + (i + 1) + "</i><span>Orden de trabajo · " + G.def.tiempo + " s</span></div>" +
+      "<h2>" + G.def.nombre + '</h2><p class="desc">' + G.def.desc + "</p>" +
+      '<div class="ins">' + ins + "</div>" + '<div class="pasos">' + pasos + "</div>" +
+      '<div class="cintaM"><div><span>★</span>' + metas[0] + "</div><div><span>★★</span>" + metas[1] + "</div><div><span>★★★</span>" + metas[2] + "</div></div>" +
+      '<div class="acciones"><button class="btn verde" data-acc="empezar">¡A trabajar!</button><button class="btn sec" data-acc="menu">Volver</button></div></div>', "orden");
+  }
+
+  function arrancar() {
+    if (!G) return;
+    activarAudio(); cerrarTarjeta(); cancelAnimationFrame(raf);
+    ajustar();
+    corriendo = true; ultimo = performance.now(); raf = requestAnimationFrame(cuadro);
+  }
+  function detener() { corriendo = false; cancelAnimationFrame(raf); }
+  function cuadro(ahora) {
+    if (!corriendo) return;
+    const dt = Math.max(0, Math.min(0.05, (ahora - ultimo) / 1000));
+    ultimo = ahora;
+    if (G.previa > 0) {
+      G.previa -= dt;
+      const s = Math.ceil(G.previa - 0.4);
+      if (s !== G.cuentaSeg) { G.cuentaSeg = s; if (s >= 1) SON.cuenta(); else SON.ya(); }
+    } else if (!G.fin) actualizar(dt);
+    else G.cierre -= dt;
+    animar(dt); pintarHud(); dibujar();
+    if (G.fin && G.cierre <= 0) { terminar(); return; }
+    raf = requestAnimationFrame(cuadro);
+  }
+  function pausar() {
+    if (!corriendo || !G || G.fin) return;
+    detener();
+    tarjeta("<h2>Pausa</h2><p>Llevas " + G.puntos + " puntos y " + G.entregados + (G.entregados === 1 ? " pedido despachado." : " pedidos despachados.") + "</p>" +
+      '<button class="op sel" data-acc="seguir">Continuar</button><button class="op" data-acc="reiniciar">Reiniciar</button><button class="op" data-acc="menu">Salir</button>', "pausa");
+  }
+
+  function terminar() {
+    detener();
+    const metas = G.def.metas, n = (G.puntos >= metas[0]) + (G.puntos >= metas[1]) + (G.puntos >= metas[2]);
+    const datos = leer(), antes = datos[G.def.id], yaGanado = todoGanado(datos);
+    const record = !antes || n > antes.e || (n === antes.e && G.puntos > antes.p);
+    if (record) { datos[G.def.id] = { e: n, p: G.puntos }; guardar(datos); }
+    const ultimoNivel = nivelIdx === NIVELES.length - 1, ganaTodo = todoGanado(datos);
+    let cinta, botones;
+    if (n === 0) {
+      cinta = "Faltaron " + (metas[0] - G.puntos) + " puntos";
+      botones = '<button class="btn" data-acc="reiniciar">Reintentar</button>';
+      SON.falla();
+    } else {
+      cinta = record && antes ? "¡Nuevo récord!" : ["", "¡Turno superado!", "¡Buen turno!", "¡Turno perfecto!"][n];
+      if (ganaTodo && (ultimoNivel || !yaGanado)) botones = '<button class="btn verde" data-acc="premio">Reclamar mi premio</button><button class="btn sec" data-acc="reiniciar">Jugar de nuevo</button>';
+      else if (!ultimoNivel) botones = '<button class="btn verde" data-acc="siguiente">Siguiente turno</button><button class="btn sec" data-acc="reiniciar">Jugar de nuevo</button>';
+      else botones = '<button class="btn" data-acc="reiniciar">Jugar de nuevo</button>';
+      SON.gana();
+    }
+    const nota = n === 3 && G.perdidos === 0 ? "A+" : ["D", "C", "B", "A"][n], total = G.puntos;
+    const fila = function (nombre, valor) { return '<div class="rl"><span>' + nombre + "</span><u></u>" + valor + "</div>"; };
+    tarjeta('<h2 class="titulo">¡Resultados!</h2><div class="pz">' +
+      '<svg class="masc" viewBox="-22 -24 44 60">' + gObrero(0, 0, 1, "") + "</svg>" +
+      '<div class="niv">Turno ' + (nivelIdx + 1) + " · " + G.def.nombre + "</div>" +
+      fila("Despachados", "<b>" + G.entregados + "</b>") + fila("Perdidos", "<b>" + G.perdidos + "</b>") + fila("Mejor racha", "<b>×" + G.rachaMax + "</b>") +
+      fila("Puntos", '<b id="cuentaPts">0</b>') + fila("Estrellas", '<span class="est">' + estrellasHtml(n) + "</span>") +
+      '<div class="rl nota"><span>Nota</span><u></u><b>' + nota + "</b></div></div>" +
+      '<div class="cinta">' + cinta + "</div>" +
+      '<div class="acciones">' + botones + '<button class="btn sec" data-acc="menu">Menú</button></div>', "result" + (n === 0 ? " gris" : ""));
+    // el marcador sube contando
+    const el = $("cuentaPts"), t0 = Date.now();
+    const sube = setInterval(function () {
+      const k = Math.min(1, (Date.now() - t0) / 900);
+      if (!el.isConnected) { clearInterval(sube); return; }
+      el.textContent = Math.round(total * suave(k));
+      if (k >= 1) clearInterval(sube);
+    }, 30);
+    if (n >= 1) lluvia(n * 8);
+  }
+
+  function lluvia(n) {
+    const cols = [C.naranja, C.verde, C.amar, "#3d7df0", "#fff"];
+    for (let i = 0; i < n; i++) {
+      const c = document.createElement("span"); c.className = "confeti";
+      c.style.left = (Math.random() * 100) + "%"; c.style.background = cols[i % cols.length];
+      c.style.animationDuration = (2.4 + Math.random() * 2.4) + "s"; c.style.animationDelay = (-Math.random() * 4) + "s";
+      $("capa").appendChild(c);
+    }
+  }
+
+  function premio() {
+    const datos = leer();
+    if (!todoGanado(datos)) {
+      let faltan = 0; for (let i = 0; i < NIVELES.length; i++) if (estrellasDe(datos, i) < 1) faltan++;
+      tarjeta('<div class="eti">Premio</div><h2>Todavía no</h2><p>Supera los 5 turnos con al menos una estrella y recibes un premio en el stand de Los chispitas. Te ' +
+        (faltan === 1 ? "falta 1 turno" : "faltan " + faltan + " turnos") + '.</p><div class="acciones"><button class="btn" data-acc="cerrar">¡Va!</button></div>');
+      return;
+    }
+    let total = 0, pts = 0;
+    for (let i = 0; i < NIVELES.length; i++) { total += estrellasDe(datos, i); pts += datos[NIVELES[i].id].p; }
+    const ahora = new Date(), dos = function (x) { return (x < 10 ? "0" : "") + x; };
+    const sello = dos(ahora.getDate()) + "/" + dos(ahora.getMonth() + 1) + "/" + ahora.getFullYear() + " · " + dos(ahora.getHours()) + ":" + dos(ahora.getMinutes());
+    tarjeta('<h2 class="titulo">¡Premio!</h2><div class="papelC">' +
+      '<svg class="trofeo" viewBox="0 0 120 120"><path d="M38 28H22c0 16 6 24 18 26M82 28h16c0 16-6 24-18 26" fill="none" stroke="#0e1a36" stroke-width="11" stroke-linecap="round"/><path d="M38 28H22c0 16 6 24 18 26M82 28h16c0 16-6 24-18 26" fill="none" stroke="#f2b632" stroke-width="6" stroke-linecap="round"/><path d="M38 22h44v26a22 22 0 0 1-44 0z" fill="#f2b632" stroke="#0e1a36" stroke-width="3"/>' +
+      '<rect x="54" y="68" width="12" height="16" fill="#d99a12" stroke="#0e1a36" stroke-width="3"/><rect x="38" y="84" width="44" height="12" rx="4" fill="#24396e" stroke="#0e1a36" stroke-width="3"/><path d="M60 30l4.400 9 9.900 1.400-7.200 7 1.700 9.800L60 52.600l-8.800 4.600 1.700-9.800-7.200-7 9.900-1.400z" fill="#fff"/></svg>' +
+      '<div class="eti centro">Los 5 turnos superados</div>' +
+      '<p class="centro">Ya eres jefe de paquetería. Despachaste todo, hasta en Buen Fin.</p>' +
+      '<div class="vale"><b>Vale por 1 premio</b><span>Enseña esta pantalla en el stand de <u>Los chispitas</u> para recibirlo.</span>' +
+      "<small>" + total + " de 15 ★ · " + pts + " pts · " + sello + "</small></div></div>" +
+      '<div class="acciones"><button class="btn sec" data-acc="menu">Volver al menú</button></div>', "result oro");
+    lluvia(30);
+    activarAudio(); SON.gana();
+  }
+
+  // ---------- eventos ----------
+  lienzo.addEventListener("pointerdown", function (ev) {
+    ev.preventDefault();
+    if (!G || !corriendo) return;
+    const r = lienzo.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    tocarCelda(Math.floor((ev.clientX - r.left) / r.width * G.W), Math.floor((ev.clientY - r.top) / r.height * G.H));
+  });
+  lienzo.addEventListener("contextmenu", function (ev) { ev.preventDefault(); });
+  $("niveles").addEventListener("click", function (ev) {
+    const b = ev.target.closest("[data-nivel]"); if (!b) return;
+    const i = +b.dataset.nivel;
+    activarAudio(); SON.pasa();
+    if (abierto(leer(), i)) prepararNivel(i);
+    else tarjeta('<div class="eti">Turno cerrado</div><h2>' + NIVELES[i].nombre + "</h2><p>Primero supera el turno " + i + ": " + NIVELES[i - 1].nombre +
+      '.</p><div class="acciones"><button class="btn" data-acc="cerrar">Entendido</button></div>');
+  });
+  $("bPremio").addEventListener("click", premio);
+  $("bIntro").addEventListener("click", abrirIntro);
+  $("bJugar").addEventListener("click", function () { activarAudio(); SON.pasa(); prepararNivel(sigNivel); });
+  $("iSig").addEventListener("click", function (ev) { ev.stopPropagation(); avanzarIntro(); });
+  $("saltar").addEventListener("click", function (ev) { ev.stopPropagation(); cerrarIntro(); });
+  $("intro").addEventListener("click", avanzarIntro);
+  $("capa").addEventListener("click", function (ev) {
+    const b = ev.target.closest("[data-acc]"); if (!b) return;
+    const acc = b.dataset.acc;
+    if (acc === "empezar" || acc === "seguir") arrancar();
+    else if (acc === "reiniciar") prepararNivel(nivelIdx);
+    else if (acc === "siguiente") prepararNivel(Math.min(nivelIdx + 1, NIVELES.length - 1));
+    else if (acc === "premio") { G = null; pintarMenu(); mostrar("menu"); premio(); }
+    else if (acc === "menu") irMenu();
+    else if (acc === "cerrar") cerrarTarjeta();
+  });
+  $("bPausa").addEventListener("click", pausar);
+  function alternarSonido() {
+    mudo = !mudo; const d = leer(); d.mudo = mudo; guardar(d); pintarSonido();
+    $("bSonM").textContent = mudo ? "Sin sonido" : "Sonido";
+    if (!mudo) { activarAudio(); SON.toma(); }
+  }
+  $("bSon").addEventListener("click", alternarSonido);
+  $("bSonM").addEventListener("click", alternarSonido);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) pausar(); });
+  window.addEventListener("pagehide", pausar);
+  window.addEventListener("resize", function () { ajustar(); dibujar(); });
+  window.addEventListener("orientationchange", function () { setTimeout(function () { ajustar(); dibujar(); }, 250); });
+  document.addEventListener("gesturestart", function (ev) { ev.preventDefault(); });
+  document.addEventListener("dblclick", function (ev) { ev.preventDefault(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { dibujar(); });
+
+  // Acceso para pruebas automáticas
+  window.__juego = { get G() { return G; }, tocar: tocarCelda, NIVELES: NIVELES };
+
+  $("pistaIco").outerHTML = ICONO_PISTA;
+  pintarSonido(); pintarMenu(); mostrar("menu");
+  if (!leer().intro) abrirIntro();
+})();
+</script>
+</body>
+</html>
