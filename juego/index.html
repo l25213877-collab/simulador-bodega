@@ -43,24 +43,25 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 @keyframes brillo { 0%, 55% { left: -90px; } 100% { left: 110%; } }
 @keyframes sube-n { from { transform: translateY(24px); opacity: 0; } }
 
-/* ---------- Intro ---------- */
-#intro { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; color: #fff; background: #0a1330;
-  padding: calc(12px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom)); }
-#intro.fuera { animation: fuera .35s forwards; }
-@keyframes fuera { to { opacity: 0; transform: scale(1.04); } }
-#saltar { align-self: flex-end; font: 700 12px var(--mono); color: #9fb0d6; padding: 8px 4px 8px 14px; }
-#escena { flex: 0 1 auto; min-height: 0; margin-top: auto; display: flex; align-items: center; justify-content: center; }
-#escena svg { width: 100%; max-height: 100%; border-radius: 22px; box-shadow: 0 18px 40px rgba(0,0,0,.45); animation: escena .45s cubic-bezier(.2,1.2,.4,1); }
-@keyframes escena { from { transform: scale(.92) translateY(14px); opacity: 0; } }
-.itxt { min-height: 132px; padding: 22px 2px 6px; margin-bottom: auto; }
-.itxt small { display: block; font: 700 11px var(--mono); color: var(--naranja); letter-spacing: .05em; text-transform: uppercase; }
-.itxt p { font: 700 21px/1.25 var(--mono); margin-top: 8px; letter-spacing: -.01em; }
-.itxt p i { font-style: normal; color: var(--amar); }
-.ipie { display: flex; align-items: center; gap: 14px; padding-bottom: 5px; }
-.ipuntos { display: flex; gap: 6px; }
-.ipuntos i { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); transition: all .25s; }
-.ipuntos i.on { width: 22px; background: var(--naranja); }
-.ipie .btn { flex: 1; }
+/* ---------- Intro: recorrido 3D por la bodega ---------- */
+#intro { position: absolute; inset: 0; z-index: 30; overflow: hidden; color: #fff; background: #c6d8b8; }
+#intro.fuera { animation: fuera .45s forwards; }
+@keyframes fuera { to { opacity: 0; transform: scale(1.05); } }
+#iVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 26% 42%; background: #c6d8b8 center / cover no-repeat; }
+#intro .velo { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; background: linear-gradient(rgba(14,26,54,0), rgba(14,26,54,.78) 62%, rgba(14,26,54,.94)); pointer-events: none; }
+#saltar { position: absolute; right: 12px; top: calc(10px + env(safe-area-inset-top)); z-index: 2; font: 700 15px/1 var(--disp); letter-spacing: .1em; text-transform: uppercase; color: var(--tinta);
+  background: rgba(246,236,214,.92); border: 2.5px solid var(--tinta); border-radius: 20px; padding: 8px 12px 6px; box-shadow: 0 3px 0 var(--tinta); }
+.isub { position: absolute; left: 18px; right: 18px; bottom: calc(96px + env(safe-area-inset-bottom)); }
+.isub small { display: block; font: 700 15px/1 var(--disp); letter-spacing: .14em; text-transform: uppercase; color: var(--amarillo); min-height: 15px; }
+.isub p { font: 700 32px/1.06 var(--disp); text-transform: uppercase; letter-spacing: .02em; margin-top: 7px; text-shadow: 0 3px 0 rgba(0,0,0,.45); }
+.isub.cambia small, .isub.cambia p { animation: isub .4s cubic-bezier(.2,1.2,.4,1) both; }
+.isub.cambia p { animation-delay: .07s; }
+@keyframes isub { from { opacity: 0; transform: translateY(16px); } }
+.ipie { position: absolute; left: 18px; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); height: 58px; display: flex; align-items: center; }
+.ibarra { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
+.ibarra i { display: block; height: 100%; width: 100%; background: var(--naranja); transform-origin: 0 50%; transform: scaleX(0); }
+#iSig { position: absolute; inset: 0 0 auto 0; animation: a-pop .5s cubic-bezier(.3,1.7,.5,1) both; }
+@media (max-height: 640px) { .isub p { font-size: 25px; } .isub { bottom: calc(86px + env(safe-area-inset-bottom)); } }
 /* piezas animadas de las escenas */
 .a-sol { animation: a-sol 2.6s ease-out both; } @keyframes a-sol { from { transform: translateY(46px); } }
 .a-camion { animation: a-camion 1.5s cubic-bezier(.2,.9,.3,1) .3s both; } @keyframes a-camion { from { transform: translateX(-240px); } 80% { transform: translateX(5px); } }
@@ -306,15 +307,10 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
 #pista.aviso { background: #ffe14d; border-color: var(--tinta); color: var(--tinta); }
 #lienzo { box-shadow: 0 0 0 4px var(--tinta), 0 0 0 8px #f47c1c, 0 0 0 11px var(--tinta), 0 16px 26px rgba(0,0,0,.5); border-radius: 14px; }
 #zona { margin-left: 13px; margin-right: 13px; }
-#saltar { font: 700 15px/1 var(--disp); letter-spacing: .1em; text-transform: uppercase; }
-.itxt small { font: 700 15px/1 var(--disp); letter-spacing: .14em; }
-.itxt p { font: 700 30px/1.08 var(--disp); text-transform: uppercase; letter-spacing: .02em; }
-#escena svg { border: 4px solid var(--tinta); border-radius: 18px; box-shadow: 0 8px 0 rgba(0,0,0,.4); }
 @media (max-height: 640px) {
   #pista { min-height: 34px; font-size: 12px; margin: 8px 10px 2px; padding: 3px 12px 3px 6px; } #pista svg { width: 24px; height: 24px; }
   #pedidos { height: 74px; } .tk .chips { height: 26px; } .tk .chips svg { width: 22px; height: 22px; }
   .barraJ { padding-top: 28px; padding-bottom: 8px; } .etq { height: 42px; } .etq b { font-size: 26px; } .moneda, .arena { width: 46px; height: 46px; margin-top: -23px; } .bt { width: 38px; height: 38px; }
-  .itxt p { font-size: 24px; } .itxt { min-height: 104px; }
   .rl { font-size: 20px; } .titulo { margin-bottom: 38px !important; }
 }
 @media (prefers-reduced-motion: reduce) { .confeti, #app::before, .nube { display: none; } #capa.result::before { animation: none; } }
@@ -375,10 +371,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   <div id="capa" hidden><div id="tarjeta"></div></div>
 
   <div id="intro" hidden>
+    <video id="iVideo" muted playsinline preload="auto" poster="intro/intro_inicio.jpg"></video>
+    <div class="velo"></div>
     <button id="saltar">Saltar ›</button>
-    <div id="escena"></div>
-    <div class="itxt"><small id="iSup"></small><p id="iTxt"></p></div>
-    <div class="ipie"><div class="ipuntos" id="iPuntos"></div><button class="btn" id="iSig">Siguiente</button></div>
+    <div class="isub" id="iSub"><small id="iSup"></small><p id="iTxt"></p></div>
+    <div class="ipie"><div class="ibarra" id="iBarraC"><i id="iBarra"></i></div><button class="btn verde" id="iSig" hidden>¡A trabajar!</button></div>
   </div>
 </div>
 
@@ -494,82 +491,67 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
     </g></g>`;
   }
 
-  // ---------- intro ----------
-  const ESCENAS = [
-    { sup: "Lunes · 7:58 a. m.", txt: "Paquetería <i>Los Chispitas</i>. Hoy es tu primer día.",
-      arte: `<svg viewBox="0 0 320 210"><defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2c66"/><stop offset=".6" stop-color="#f08a4b"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs>
-        <rect width="320" height="210" fill="url(#cielo)"/><circle class="a-sol" cx="76" cy="112" r="50" fill="rgba(255,241,184,.25)"/><circle class="a-sol" cx="76" cy="112" r="34" fill="#fff1b8"/>
-        <rect x="0" y="150" width="320" height="60" fill="#2a3557"/><rect x="0" y="150" width="320" height="6" fill="#3b4870"/>
-        <path d="M0 184h40M60 184h40M120 184h40M180 184h40M240 184h40M300 184h20" stroke="#f2b632" stroke-width="4"/>
-        <rect x="150" y="62" width="160" height="92" fill="#182a55" stroke="#0e1a36" stroke-width="3"/><path d="M142 64 230 34 318 64z" fill="#24396e" stroke="#0e1a36" stroke-width="3" stroke-linejoin="round"/>
-        <rect x="176" y="72" width="108" height="20" rx="4" fill="#ff7a1a" stroke="#0e1a36" stroke-width="2.5"/><text x="230" y="86.5" text-anchor="middle" font-family="JBMono,monospace" font-weight="700" font-size="12" fill="#fff">PAQUETERÍA</text>
-        <rect x="196" y="102" width="68" height="52" fill="#0e1a36"/><path d="M196 112h68M196 122h68M196 132h68M196 142h68" stroke="#24396e" stroke-width="2"/>
-        ${gCamion(86, 144, 1, "a-camion")}${gObrero(284, 146, 0.9, "a-rebota")}</svg>` },
-    { sup: "8:01 a. m.", txt: "Y ya llovieron los pedidos. ¡Los clientes <i>no esperan</i>!",
-      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#24396e"/><rect y="150" width="320" height="60" fill="#dfe4ec"/><rect y="150" width="320" height="6" fill="#b9c3d8"/>
-        <rect x="20" y="20" width="116" height="66" rx="8" fill="#182a55" stroke="#0e1a36" stroke-width="3"/><path d="M32 70 56 48l18 14 22-28 28 36" fill="none" stroke="#ff7a1a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        ${[0, 1, 2, 3, 4, 5, 6].map(function (i) {
-          const x = 176 + (i % 4) * 34 - (i > 3 ? -17 : 0), y = i > 3 ? 96 : 46, r = (i * 37 % 30) - 15;
-          return `<g transform="translate(${x} ${y}) rotate(${r})"><g class="a-cae" style="animation-delay:${0.25 + i * 0.16}s"><rect x="-13" y="-17" width="26" height="34" rx="3" fill="#fffaf0" stroke="#0e1a36" stroke-width="2"/><g transform="translate(-8 -12) scale(.66)" fill="${PROD[i % 4].color}" stroke="${PROD[i % 4].osc}" stroke-width="2">${FORMAS[i % 4]}</g><rect x="-9" y="9" width="18" height="4" rx="2" fill="${i % 3 ? "#1fa67a" : "#e5412d"}"/></g></g>`;
-        }).join("")}
-        <g transform="translate(78 150)"><g class="a-tiembla">${gObrero(0, 0, 1.25, "")}</g></g>
-        <path class="a-gota" d="M106 112q5 8 0 11-5-3 0-11z" fill="#bfe3ff" stroke="#0e1a36" stroke-width="1.5"/>
-        <text x="110" y="112" font-family="JBMono,monospace" font-weight="700" font-size="20" fill="#fff" class="a-tiembla">¡¿?!</text></svg>` },
-    { sup: "Tu trabajo", txt: "Caja, producto, <i>escáner</i>, cinta… ¡y al camión!",
-      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#182a55"/><rect y="136" width="320" height="74" fill="#dfe4ec"/><rect x="14" y="126" width="292" height="14" rx="7" fill="#59657f" stroke="#0e1a36" stroke-width="2.5"/>
-        <path d="M26 133h268" stroke="#0e1a36" stroke-width="2" stroke-dasharray="8 8"><animate attributeName="stroke-dashoffset" from="16" to="0" dur=".5s" repeatCount="indefinite"/></path>
-        ${[["#d39a5b", "CAJA"], ["#ff7a1a", "SURTIR"], ["#26365f", "ESCÁNER"], ["#aab4c8", "SELLAR"]].map(function (d, i) {
-          return `<g transform="translate(${40 + i * 60} 50)"><g class="a-pop" style="animation-delay:${0.2 + i * 0.22}s"><rect x="-22" y="-22" width="44" height="44" rx="12" fill="${d[0]}" stroke="#0e1a36" stroke-width="3"/><text y="38" text-anchor="middle" font-family="JBMono,monospace" font-weight="700" font-size="9" fill="#fff">${d[1]}</text>
-            ${["<rect x='-11' y='-9' width='22' height='18' rx='2' fill='#a8743d' stroke='#0e1a36' stroke-width='2'/><rect x='-3' y='-9' width='6' height='18' fill='#f6e9cf'/>",
-               "<circle r='11' fill='#fff'/><circle r='6' fill='#ef4b37' stroke='#b22a1a' stroke-width='2'/>",
-               "<rect x='-13' y='-11' width='26' height='22' rx='3' fill='#0e1a36'/><rect x='-11' y='-2' width='22' height='3' fill='#3cffaa'><animate attributeName='y' values='-8;6;-8' dur='1.2s' repeatCount='indefinite'/></rect>",
-               "<circle r='11' fill='#f6e9cf' stroke='#0e1a36' stroke-width='2'/><circle r='4' fill='#59657f'/>"][i]}</g></g>`;
-        }).join("")}
-        <path d="M66 50h8M126 50h8M186 50h8M246 50h8" stroke="#ff7a1a" stroke-width="4" stroke-linecap="round"/>
-        ${gCamion(286, 48, 0.5, "a-rebota")}
-        <g class="a-viaje">${gCaja(40, 114, 1, "", "")}</g>
-        ${gObrero(160, 176, 1, "a-rebota")}</svg>` },
-    { sup: "La recompensa", txt: "Aguanta los <i>5 turnos</i> y te llevas un premio en el stand.",
-      arte: `<svg viewBox="0 0 320 210"><rect width="320" height="210" fill="#3a1f5c"/><circle cx="160" cy="100" r="88" fill="rgba(255,195,92,.16)"/><circle cx="160" cy="100" r="60" fill="rgba(255,195,92,.2)"/>
-        ${[[60, 44], [262, 52], [44, 132], [276, 140], [112, 24], [214, 22]].map(function (p, i) {
-          return `<path class="a-brilla" style="animation-delay:${i * 0.18}s" transform="translate(${p[0]} ${p[1]})" d="M0-11 3-3l8 3-8 3-3 8-3-8-8-3 8-3z" fill="#ffd27a"/>`;
-        }).join("")}
-        <g transform="translate(160 106)"><g class="a-rebota"><rect x="-44" y="-18" width="88" height="56" rx="7" fill="#ff7a1a" stroke="#0e1a36" stroke-width="3.5"/><rect x="-50" y="-34" width="100" height="22" rx="6" fill="#ffa24d" stroke="#0e1a36" stroke-width="3.5"/>
-          <rect x="-8" y="-34" width="16" height="72" fill="#fff" stroke="#0e1a36" stroke-width="3"/><path d="M0-34c-8-22-34-20-28-6 4 8 18 8 28 6zm0 0c8-22 34-20 28-6-4 8-18 8-28 6z" fill="#fff" stroke="#0e1a36" stroke-width="3.5" stroke-linejoin="round"/></g></g>
-        ${[0, 1, 2, 3, 4].map(function (i) { return `<text class="a-pop" style="animation-delay:${0.5 + i * 0.18}s" x="${104 + i * 28}" y="192" text-anchor="middle" font-size="26" fill="#f2b632" stroke="#0e1a36" stroke-width="1.2">★</text>`; }).join("")}</svg>` },
+  // ---------- intro: video del recorrido 3D con subtítulos ----------
+  const SUBS = [   // desde (s), rótulo, texto
+    [0.0, "Lunes · 7:58 a. m.", "Llega el camión a la paquetería."],
+    [2.6, "8:00 a. m.", "Cada pedido entra por recepción…"],
+    [4.5, "8:01 a. m.", "…y se amontona antes del surtido."],
+    [6.9, "", "Aquí se atora todo."],
+    [8.9, "Tu turno", "Despáchalos antes de que el cliente se canse."],
   ];
-  let introIdx = 0, introTimer = 0, introLetras = 0;
-  function textoPlano(html) { return html.replace(/<[^>]+>/g, ""); }
-  function pintarEscena() {
-    const e = ESCENAS[introIdx];
-    $("escena").innerHTML = e.arte;
-    $("iSup").textContent = e.sup;
-    $("iPuntos").innerHTML = ESCENAS.map(function (_, i) { return '<i class="' + (i === introIdx ? "on" : "") + '"></i>'; }).join("");
-    $("iSig").textContent = introIdx === ESCENAS.length - 1 ? "¡A trabajar!" : "Siguiente";
-    $("iSig").classList.toggle("verde", introIdx === ESCENAS.length - 1);
-    clearInterval(introTimer);
-    const plano = textoPlano(e.txt);
-    introLetras = 0; $("iTxt").textContent = "";
-    introTimer = setInterval(function () {
-      introLetras += 2;
-      if (introLetras >= plano.length) { clearInterval(introTimer); introLetras = plano.length; $("iTxt").innerHTML = e.txt; }
-      else $("iTxt").textContent = plano.slice(0, introLetras);
-    }, 28);
+  let introSub = -1, introRaf = 0, introListo = false, introGuardia = 0;
+  function subtitulo(i) {
+    if (i === introSub) return;
+    introSub = i;
+    $("iSup").textContent = SUBS[i][1]; $("iTxt").textContent = SUBS[i][2];
+    const s = $("iSub"); s.classList.remove("cambia"); void s.offsetWidth; s.classList.add("cambia");
+    if (i > 0) SON.pasa();
   }
-  function abrirIntro() { introIdx = 0; $("intro").classList.remove("fuera"); $("intro").hidden = false; pintarEscena(); }
+  function finIntro() {            // el video terminó (o no pudo reproducirse): queda el título y el botón
+    if (introListo) return;
+    introListo = true; cancelAnimationFrame(introRaf); clearTimeout(introGuardia);
+    subtitulo(SUBS.length - 1);
+    $("iBarraC").hidden = true; $("iSig").hidden = false;
+  }
+  function sinVideo() {            // respaldo: se muestra el último cuadro como imagen fija
+    const v = $("iVideo");
+    try { v.pause(); } catch (e) { /* nada */ }
+    v.removeAttribute("src"); v.poster = "intro/intro_fin.jpg"; v.style.backgroundImage = 'url("intro/intro_fin.jpg")';
+    finIntro();
+  }
+  function cuadroIntro() {
+    const v = $("iVideo"), t = v.currentTime || 0, dur = v.duration || 11;
+    let i = 0;
+    for (let k = 0; k < SUBS.length; k++) if (t >= SUBS[k][0]) i = k;
+    subtitulo(i);
+    $("iBarra").style.transform = "scaleX(" + Math.min(1, t / dur).toFixed(3) + ")";
+    if (v.ended) { finIntro(); return; }
+    introRaf = requestAnimationFrame(cuadroIntro);
+  }
+  function abrirIntro() {
+    const v = $("iVideo");
+    introSub = -1; introListo = false;
+    cancelAnimationFrame(introRaf); clearTimeout(introGuardia);
+    $("iSig").hidden = true; $("iBarraC").hidden = false; $("iBarra").style.transform = "scaleX(0)";
+    $("intro").classList.remove("fuera"); $("intro").hidden = false;
+    v.poster = "intro/intro_inicio.jpg"; v.style.backgroundImage = "";
+    subtitulo(0);
+    if (!v.canPlayType || !v.canPlayType("video/mp4")) { sinVideo(); return; }
+    if (!v.getAttribute("src")) v.src = "intro/intro.mp4";
+    try { v.currentTime = 0; } catch (e) { /* aún sin datos */ }
+    v.muted = true;
+    const p = v.play();
+    if (p && p.catch) p.catch(sinVideo);          // el navegador bloqueó la reproducción automática
+    introGuardia = setTimeout(function () { if (!introListo && (v.currentTime || 0) < 0.05) sinVideo(); }, 6000);   // red lenta
+    introRaf = requestAnimationFrame(cuadroIntro);
+  }
   function cerrarIntro() {
-    clearInterval(introTimer);
+    if ($("intro").classList.contains("fuera")) return;
+    cancelAnimationFrame(introRaf); clearTimeout(introGuardia);
+    try { $("iVideo").pause(); } catch (e) { /* nada */ }
     const d = leer(); d.intro = true; guardar(d);
     $("intro").classList.add("fuera");
-    setTimeout(function () { $("intro").hidden = true; $("escena").innerHTML = ""; }, 340);
-  }
-  function avanzarIntro() {
-    if ($("intro").classList.contains("fuera")) return;
-    activarAudio();
-    const e = ESCENAS[introIdx];
-    if (introLetras < textoPlano(e.txt).length) { clearInterval(introTimer); introLetras = 1e9; $("iTxt").innerHTML = e.txt; return; }
-    SON.pasa();
-    if (introIdx < ESCENAS.length - 1) { introIdx++; pintarEscena(); } else cerrarIntro();
+    setTimeout(function () { $("intro").hidden = true; }, 440);
   }
 
   // ---------- utilidades de dibujo ----------
@@ -1653,9 +1635,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   $("bPremio").addEventListener("click", premio);
   $("bIntro").addEventListener("click", abrirIntro);
   $("bJugar").addEventListener("click", function () { activarAudio(); SON.pasa(); prepararNivel(sigNivel); });
-  $("iSig").addEventListener("click", function (ev) { ev.stopPropagation(); avanzarIntro(); });
+  $("iSig").addEventListener("click", function (ev) { ev.stopPropagation(); activarAudio(); SON.pasa(); cerrarIntro(); });
   $("saltar").addEventListener("click", function (ev) { ev.stopPropagation(); cerrarIntro(); });
-  $("intro").addEventListener("click", avanzarIntro);
+  $("iVideo").addEventListener("ended", finIntro);
+  $("iVideo").addEventListener("error", sinVideo);
+  $("intro").addEventListener("click", function () { if (introListo) cerrarIntro(); });
   $("capa").addEventListener("click", function (ev) {
     const b = ev.target.closest("[data-acc]"); if (!b) return;
     const acc = b.dataset.acc;
@@ -1674,7 +1658,11 @@ button { font: inherit; color: inherit; border: 0; background: none; cursor: poi
   }
   $("bSon").addEventListener("click", alternarSonido);
   $("bSonM").addEventListener("click", alternarSonido);
-  document.addEventListener("visibilitychange", function () { if (document.hidden) pausar(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) { pausar(); return; }
+    const v = $("iVideo");      // al volver a la pestaña, la intro sigue donde iba
+    if (!$("intro").hidden && !introListo && v.paused && v.getAttribute("src")) { const p = v.play(); if (p && p.catch) p.catch(sinVideo); }
+  });
   window.addEventListener("pagehide", pausar);
   window.addEventListener("resize", function () { ajustar(); dibujar(); });
   window.addEventListener("orientationchange", function () { setTimeout(function () { ajustar(); dibujar(); }, 250); });
